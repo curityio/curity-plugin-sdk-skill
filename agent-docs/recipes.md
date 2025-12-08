@@ -1,0 +1,605 @@
+# Plugin Implementation Recipes
+
+This document provides **end-to-end working examples** for common plugin implementation scenarios. These are copy-paste ready patterns that show complete integration across descriptor, configuration, handlers, and tests.
+
+---
+
+## Basic Authenticators
+
+### Recipe 1: Username/Password Authenticator
+
+A simple single-screen authenticator that verifies username and password credentials.
+
+**Descriptor** (`UsernamePasswordAuthenticatorDescriptor.kt`):
+```kotlin
+package io.curity.identityserver.plugin.usernamepassword.descriptor
+
+import io.curity.identityserver.plugin.usernamepassword.UsernamePasswordAuthenticatorConfig
+import io.curity.identityserver.plugin.usernamepassword.UsernamePasswordRequestHandler
+import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler
+import se.curity.identityserver.sdk.plugin.descriptor.AuthenticatorPluginDescriptor
+
+class UsernamePasswordAuthenticatorDescriptor : AuthenticatorPluginDescriptor<UsernamePasswordAuthenticatorConfig> {
+    override fun getPluginImplementationType(): String = "username-password"
+    
+    override fun getConfigurationType(): Class<out UsernamePasswordAuthenticatorConfig> = 
+        UsernamePasswordAuthenticatorConfig::class.java
+    
+    override fun getAuthenticationRequestHandlerTypes(): Map<String, Class<out AuthenticatorRequestHandler<*>>> {
+        return mapOf("index" to UsernamePasswordRequestHandler::class.java)
+    }
+}
+```
+
+**Configuration** (`UsernamePasswordAuthenticatorConfig.kt`):
+```kotlin
+package io.curity.identityserver.plugin.usernamepassword
+
+import se.curity.identityserver.sdk.config.Configuration
+import se.curity.identityserver.sdk.config.annotation.Description
+import se.curity.identityserver.sdk.service.ExceptionFactory
+import se.curity.identityserver.sdk.service.SessionManager
+import se.curity.identityserver.sdk.service.credential.UserCredentialManager
+
+interface UsernamePasswordAuthenticatorConfig : Configuration {
+    @Description("Factory for creating SDK exceptions")
+    fun getExceptionFactory(): ExceptionFactory
+    
+    @Description("Manager for session state")
+    fun getSessionManager(): SessionManager
+    
+    @Description("User credential verification service")
+    fun getUserCredentialManager(): UserCredentialManager
+}
+```
+
+**Request Model** (`UsernamePasswordRequestModel.kt`):
+```kotlin
+package io.curity.identityserver.plugin.usernamepassword
+
+import jakarta.validation.constraints.NotBlank
+import se.curity.identityserver.sdk.web.Request
+
+class UsernamePasswordRequestModel(request: Request) {
+    @NotBlank(message = "validation.error.username.required")
+    val username: String? = request.getFormParameterValues("username").firstOrNull()
+    
+    @NotBlank(message = "validation.error.password.required")
+    val password: String? = request.getFormParameterValues("password").firstOrNull()
+    
+    val isPostBack: Boolean = request.isPostRequest
+}
+
+class UsernamePasswordPostRequestModel(request: Request) : UsernamePasswordRequestModel(request) {
+    val validatedUsername: String = username!!
+    val validatedPassword: String = password!!
+}
+```
+
+**Request Handler** (`UsernamePasswordRequestHandler.kt`):
+```kotlin
+package io.curity.identityserver.plugin.usernamepassword
+
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import se.curity.identityserver.sdk.attribute.SubjectAttributes
+import se.curity.identityserver.sdk.authentication.AuthenticationResult
+import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler
+import se.curity.identityserver.sdk.service.credential.CredentialVerificationResult
+import se.curity.identityserver.sdk.web.Request
+import se.curity.identityserver.sdk.web.Response
+import se.curity.identityserver.sdk.web.ResponseModel
+import java.util.Optional
+
+class UsernamePasswordRequestHandler(
+    private val config: UsernamePasswordAuthenticatorConfig
+) : AuthenticatorRequestHandler<UsernamePasswordRequestModel> {
+    
+    private val logger: Logger = LoggerFactory.getLogger(UsernamePasswordRequestHandler::class.java)
+    
+    override fun preProcess(request: Request, response: Response): UsernamePasswordRequestModel {
+        return if (request.isPostRequest) {
+            UsernamePasswordPostRequestModel(request)
+        } else {
+            UsernamePasswordRequestModel(request)
+        }
+    }
+    
+    override fun get(requestModel: UsernamePasswordRequestModel, response: Response): Optional<AuthenticationResult> {
+        logger.debug("Displaying username/password form")
+        
+        val viewData = emptyMap<String, Any>()
+        response.setResponseModel(
+            ResponseModel.templateResponseModel(viewData, "index/get"),
+            Response.ResponseModelScope.ANY
+        )
+        
+        return Optional.empty()
+    }
+    
+    override fun post(requestModel: UsernamePasswordRequestModel, response: Response): Optional<AuthenticationResult> {
+        if (requestModel !is UsernamePasswordPostRequestModel) {
+            logger.warn("Expected validated post model")
+            return get(requestModel, response)
+        }
+        
+        val username = requestModel.validatedUsername
+        val password = requestModel.validatedPassword
+        
+        logger.debug("Verifying credentials for user: {}", username)
+        
+        val subjectAttributes = SubjectAttributes.of(username)
+        val verificationResult = config.getUserCredentialManager().verify(subjectAttributes, password)
+        
+        return when (verificationResult) {
+            is CredentialVerificationResult.Accepted -> {
+                logger.info("Authentication successful for user: {}", username)
+                Optional.of(AuthenticationResult(username))
+            }
+            is CredentialVerificationResult.Rejected -> {
+                logger.warn("Authentication failed for user: {}", username)
+                val viewData = mapOf("_error" to "Invalid username or password")
+                response.setResponseModel(
+                    ResponseModel.templateResponseModel(viewData, "index/get"),
+                    Response.ResponseModelScope.ANY
+                )
+                Optional.empty()
+            }
+        }
+    }
+}
+```
+
+**Template** (`templates/authenticator/username-password/index/get.vm`):
+```velocity
+#define($_body)
+    #if($_error)
+        <div class="error">$_error</div>
+    #end
+    
+    <form method="post">
+        <div class="form-field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" class="block full-width mb1 field-light" 
+                   autocomplete="username" autofocus />
+            <i class="form-field-icon icon ion-ios-person"></i>
+        </div>
+        
+        <div class="form-field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" class="block full-width mb1 field-light" 
+                   autocomplete="current-password" />
+            <i class="form-field-icon icon ion-ios-locked"></i>
+        </div>
+        
+        <button type="submit" class="button button-fullwidth mt2">Sign In</button>
+    </form>
+#end
+#parse('layouts/default')
+```
+
+---
+
+## Multi-Screen Authenticators
+
+### Recipe 2: SMS OTP Flow (Password → OTP)
+
+Two-screen authenticator: first verifies password, then sends SMS OTP and verifies it.
+
+**Descriptor** (`SmsOtpAuthenticatorDescriptor.kt`):
+```kotlin
+package io.curity.identityserver.plugin.smsotp.descriptor
+
+import io.curity.identityserver.plugin.smsotp.OtpRequestHandler
+import io.curity.identityserver.plugin.smsotp.PasswordRequestHandler
+import io.curity.identityserver.plugin.smsotp.SmsOtpAuthenticatorConfig
+import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler
+import se.curity.identityserver.sdk.plugin.descriptor.AuthenticatorPluginDescriptor
+
+class SmsOtpAuthenticatorDescriptor : AuthenticatorPluginDescriptor<SmsOtpAuthenticatorConfig> {
+    override fun getPluginImplementationType(): String = "sms-otp"
+    
+    override fun getConfigurationType(): Class<out SmsOtpAuthenticatorConfig> = 
+        SmsOtpAuthenticatorConfig::class.java
+    
+    override fun getAuthenticationRequestHandlerTypes(): Map<String, Class<out AuthenticatorRequestHandler<*>>> {
+        return mapOf(
+            "index" to PasswordRequestHandler::class.java,
+            "otp" to OtpRequestHandler::class.java
+        )
+    }
+}
+```
+
+**Configuration** (`SmsOtpAuthenticatorConfig.kt`):
+```kotlin
+package io.curity.identityserver.plugin.smsotp
+
+import se.curity.identityserver.sdk.config.Configuration
+import se.curity.identityserver.sdk.config.annotation.Description
+import se.curity.identityserver.sdk.service.ExceptionFactory
+import se.curity.identityserver.sdk.service.SessionManager
+import se.curity.identityserver.sdk.service.credential.UserCredentialManager
+import se.curity.identityserver.sdk.service.AccountManager
+import se.curity.identityserver.sdk.service.SmsSender
+import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider
+
+interface SmsOtpAuthenticatorConfig : Configuration {
+    @Description("Factory for creating SDK exceptions")
+    fun getExceptionFactory(): ExceptionFactory
+    
+    @Description("Manager for session state")
+    fun getSessionManager(): SessionManager
+    
+    @Description("User credential verification service")
+    fun getUserCredentialManager(): UserCredentialManager
+    
+    @Description("Account lookup service")
+    fun getAccountManager(): AccountManager
+    
+    @Description("SMS sending service")
+    fun getSmsSender(): SmsSender
+    
+    @Description("Authenticator information provider")
+    fun getAuthenticatorInformationProvider(): AuthenticatorInformationProvider
+}
+```
+
+**Password Handler** (`PasswordRequestHandler.kt`):
+```kotlin
+package io.curity.identityserver.plugin.smsotp
+
+import org.slf4j.LoggerFactory
+import se.curity.identityserver.sdk.attribute.Attribute
+import se.curity.identityserver.sdk.attribute.AttributeValue
+import se.curity.identityserver.sdk.attribute.MapAttributeValue
+import se.curity.identityserver.sdk.attribute.SubjectAttributes
+import se.curity.identityserver.sdk.authentication.AuthenticationResult
+import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler
+import se.curity.identityserver.sdk.errors.ErrorCode
+import se.curity.identityserver.sdk.service.credential.CredentialVerificationResult
+import se.curity.identityserver.sdk.web.Request
+import se.curity.identityserver.sdk.web.Response
+import se.curity.identityserver.sdk.web.ResponseModel
+import java.util.Optional
+import kotlin.random.Random
+
+class PasswordRequestHandler(private val config: SmsOtpAuthenticatorConfig) : 
+    AuthenticatorRequestHandler<PasswordRequestModel> {
+    
+    private val logger = LoggerFactory.getLogger(PasswordRequestHandler::class.java)
+    
+    override fun preProcess(request: Request, response: Response): PasswordRequestModel {
+        return if (request.isPostRequest) {
+            PasswordPostRequestModel(request)
+        } else {
+            PasswordRequestModel(request)
+        }
+    }
+    
+    override fun get(requestModel: PasswordRequestModel, response: Response): Optional<AuthenticationResult> {
+        val viewData = emptyMap<String, Any>()
+        response.setResponseModel(
+            ResponseModel.templateResponseModel(viewData, "index/get"),
+            Response.ResponseModelScope.ANY
+        )
+        return Optional.empty()
+    }
+    
+    override fun post(requestModel: PasswordRequestModel, response: Response): Optional<AuthenticationResult> {
+        if (requestModel !is PasswordPostRequestModel) {
+            return get(requestModel, response)
+        }
+        
+        val username = requestModel.validatedUsername
+        val password = requestModel.validatedPassword
+        
+        // Verify password
+        val subjectAttributes = SubjectAttributes.of(username)
+        val verificationResult = config.getUserCredentialManager().verify(subjectAttributes, password)
+        
+        if (verificationResult is CredentialVerificationResult.Rejected) {
+            logger.warn("Password verification failed for user: {}", username)
+            val viewData = mapOf("_error" to "Invalid username or password")
+            response.setResponseModel(
+                ResponseModel.templateResponseModel(viewData, "index/get"),
+                Response.ResponseModelScope.ANY
+            )
+            return Optional.empty()
+        }
+        
+        // Get account and phone number
+        val account = config.getAccountManager().getByUserName(username)
+            ?: throw config.getExceptionFactory().internalServerException(
+                ErrorCode.EXTERNAL_SERVICE_ERROR,
+                "Account not found for user: $username"
+            )
+        
+        val phoneNumber = account.phoneNumbers?.primaryOrFirst?.significantValue
+            ?: throw config.getExceptionFactory().internalServerException(
+                ErrorCode.CONFIGURATION_ERROR,
+                "No phone number configured for user: $username"
+            )
+        
+        // Generate and send OTP
+        val otp = String.format("%06d", Random.nextInt(0, 1000000))
+        logger.debug("Generated OTP for user: {}", username)
+        
+        config.getSmsSender().sendSms(phoneNumber, "Your verification code is: $otp")
+        logger.info("Sent SMS OTP to user: {}", username)
+        
+        // Store OTP and account in session
+        val sessionManager = config.getSessionManager()
+        sessionManager.put(Attribute.of("otp", otp))
+        sessionManager.put(Attribute.of("username", username))
+        sessionManager.put(Attribute.of("account", MapAttributeValue.of(account.toMap())))
+        
+        // Redirect to OTP screen
+        val otpUrl = config.getAuthenticatorInformationProvider().getFullyQualifiedAuthenticationUri() + "/otp"
+        throw config.getExceptionFactory().redirectException(otpUrl)
+    }
+}
+```
+
+**OTP Handler** (`OtpRequestHandler.kt`):
+```kotlin
+package io.curity.identityserver.plugin.smsotp
+
+import org.slf4j.LoggerFactory
+import se.curity.identityserver.sdk.attribute.Attribute
+import se.curity.identityserver.sdk.attribute.AuthenticationAttributes
+import se.curity.identityserver.sdk.attribute.SubjectAttributes
+import se.curity.identityserver.sdk.authentication.AuthenticationResult
+import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler
+import se.curity.identityserver.sdk.errors.ErrorCode
+import se.curity.identityserver.sdk.web.Request
+import se.curity.identityserver.sdk.web.Response
+import se.curity.identityserver.sdk.web.ResponseModel
+import java.util.Optional
+
+class OtpRequestHandler(private val config: SmsOtpAuthenticatorConfig) : 
+    AuthenticatorRequestHandler<OtpRequestModel> {
+    
+    private val logger = LoggerFactory.getLogger(OtpRequestHandler::class.java)
+    
+    override fun preProcess(request: Request, response: Response): OtpRequestModel {
+        return if (request.isPostRequest) {
+            OtpPostRequestModel(request)
+        } else {
+            OtpRequestModel(request)
+        }
+    }
+    
+    override fun get(requestModel: OtpRequestModel, response: Response): Optional<AuthenticationResult> {
+        val viewData = emptyMap<String, Any>()
+        response.setResponseModel(
+            ResponseModel.templateResponseModel(viewData, "otp/get"),
+            Response.ResponseModelScope.ANY
+        )
+        return Optional.empty()
+    }
+    
+    override fun post(requestModel: OtpRequestModel, response: Response): Optional<AuthenticationResult> {
+        if (requestModel !is OtpPostRequestModel) {
+            return get(requestModel, response)
+        }
+        
+        val sessionManager = config.getSessionManager()
+        
+        // Retrieve session data
+        val storedOtp = sessionManager.get("otp")?.attributeValue?.value as String?
+            ?: throw config.getExceptionFactory().internalServerException(
+                ErrorCode.GENERIC_ERROR,
+                "Session expired - OTP not found"
+            )
+        
+        val username = sessionManager.get("username")?.attributeValue?.value as String?
+            ?: throw config.getExceptionFactory().internalServerException(
+                ErrorCode.GENERIC_ERROR,
+                "Session expired - username not found"
+            )
+        
+        val accountAttribute = sessionManager.get("account")
+        
+        // Verify OTP
+        if (requestModel.validatedOtp != storedOtp) {
+            logger.warn("OTP verification failed for user: {}", username)
+            val viewData = mapOf("_error" to "Invalid verification code")
+            response.setResponseModel(
+                ResponseModel.templateResponseModel(viewData, "otp/get"),
+                Response.ResponseModelScope.ANY
+            )
+            return Optional.empty()
+        }
+        
+        logger.info("OTP verification successful for user: {}", username)
+        
+        // Clear session
+        sessionManager.remove("otp")
+        sessionManager.remove("username")
+        sessionManager.remove("account")
+        
+        // Build authentication result with account
+        val subjectAttributes = if (accountAttribute != null) {
+            SubjectAttributes.of(
+                listOf(
+                    Attribute.of("subject", username),
+                    accountAttribute
+                )
+            )
+        } else {
+            SubjectAttributes.of(username)
+        }
+        
+        val authAttributes = AuthenticationAttributes.of(subjectAttributes)
+        return Optional.of(AuthenticationResult(authAttributes as se.curity.identityserver.sdk.attribute.AuthenticationAttributes))
+    }
+}
+```
+
+**Key Pattern: Session State Management**
+```kotlin
+// Store data for next screen
+sessionManager.put(Attribute.of("otp", otp))
+sessionManager.put(Attribute.of("account", MapAttributeValue.of(account.toMap())))
+
+// Retrieve in next handler
+val storedOtp = sessionManager.get("otp")?.attributeValue?.value as String?
+val accountAttribute = sessionManager.get("account")
+
+// Reuse attribute directly in SubjectAttributes
+SubjectAttributes.of(
+    listOf(
+        Attribute.of("subject", username),
+        accountAttribute  // No unwrapping needed
+    )
+)
+
+// Clean up
+sessionManager.remove("otp")
+sessionManager.remove("account")
+```
+
+---
+
+## Advanced Patterns
+
+### Recipe 3: Attribute Enrichment
+
+Add custom attributes to the authentication result using AccountManager.
+
+```kotlin
+// Get account with all attributes
+val account = config.getAccountManager().getByUserName(username)
+
+// Build subject with account data
+val subjectAttributes = SubjectAttributes.of(
+    listOf(
+        Attribute.of("subject", username),
+        Attribute.of("email", account.emails?.primaryOrFirst?.value ?: ""),
+        Attribute.of("account", account as AttributeValue)
+    )
+)
+
+val authAttributes = AuthenticationAttributes.of(subjectAttributes)
+return Optional.of(AuthenticationResult(authAttributes as se.curity.identityserver.sdk.attribute.AuthenticationAttributes))
+```
+
+### Recipe 4: External Service Integration
+
+Pattern for calling external APIs with proper error handling.
+
+```kotlin
+import org.slf4j.LoggerFactory
+import se.curity.identityserver.sdk.errors.ErrorCode
+
+private val logger = LoggerFactory.getLogger(MyHandler::class.java)
+
+fun callExternalService(username: String): UserData {
+    return try {
+        logger.debug("Calling external service for user: {}", username)
+        
+        val response = httpClient.get("https://api.example.com/users/$username")
+        
+        if (!response.isSuccessful) {
+            logger.error("External service returned error: {}", response.statusCode)
+            throw config.getExceptionFactory().externalServiceException(
+                "External service error: ${response.statusCode}"
+            )
+        }
+        
+        response.body
+    } catch (e: IOException) {
+        logger.error("Failed to connect to external service", e)
+        throw config.getExceptionFactory().externalServiceException(
+            "Failed to connect to external service: ${e.message}"
+        )
+    }
+}
+```
+
+---
+
+## Testing Patterns
+
+### Recipe 5: Basic Handler Test
+
+```groovy
+package io.curity.identityserver.plugin.usernamepassword
+
+import se.curity.identityserver.sdk.service.credential.CredentialVerificationResult
+import se.curity.identityserver.sdk.web.Response
+import spock.lang.Specification
+
+class UsernamePasswordRequestHandlerSpec extends Specification {
+
+    def config
+    def userCredentialManager
+    def handler
+    def response
+
+    def setup() {
+        config = Mock(UsernamePasswordAuthenticatorConfig)
+        userCredentialManager = Mock()
+        response = Mock()
+        
+        config.getUserCredentialManager() >> userCredentialManager
+        
+        handler = new UsernamePasswordRequestHandler(config)
+    }
+
+    def "POST with valid credentials should authenticate successfully"() {
+        given: "a POST request with valid credentials"
+        def requestModel = Mock(UsernamePasswordPostRequestModel)
+        requestModel.validatedUsername >> "alice"
+        requestModel.validatedPassword >> "password123"
+        
+        and: "credential verification succeeds"
+        userCredentialManager.verify(_, "password123") >> CredentialVerificationResult.Accepted.instance
+
+        when: "handling the POST request"
+        def result = handler.post(requestModel, response)
+
+        then: "authentication result is returned"
+        result.isPresent()
+        def authResult = result.get()
+        authResult != null
+    }
+    
+    def "POST with invalid credentials should show error"() {
+        given: "a POST request with invalid credentials"
+        def requestModel = Mock(UsernamePasswordPostRequestModel)
+        requestModel.validatedUsername >> "alice"
+        requestModel.validatedPassword >> "wrongpassword"
+        
+        and: "credential verification fails"
+        userCredentialManager.verify(_, _) >> CredentialVerificationResult.Rejected.instance
+
+        when: "handling the POST request"
+        def result = handler.post(requestModel, response)
+
+        then: "error is displayed"
+        1 * response.setResponseModel({ it.data['_error'] != null }, Response.ResponseModelScope.ANY)
+        
+        and: "result is empty"
+        !result.isPresent()
+    }
+}
+```
+
+---
+
+## Quick Reference
+
+**Need to:**
+- Verify password? → Recipe 1 (Username/Password)
+- Multi-screen flow? → Recipe 2 (SMS OTP)
+- Add account attributes? → Recipe 3 (Attribute Enrichment)
+- Call external API? → Recipe 4 (External Service Integration)
+- Write tests? → Recipe 5 (Basic Handler Test)
+
+**See also:**
+- API reference → `sdk-services.md`
+- Request handler lifecycle → `request-handlers.md`
+- Template syntax → `templating.md`
+- Test framework → `testing.md`
