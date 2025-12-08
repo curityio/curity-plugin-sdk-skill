@@ -29,12 +29,15 @@ The goal is to give agents:
   Topic-specific references and examples:
   - `plugin-system.md` – How the plugin system works (concepts + lifecycle)
   - `plugin-types.md` – Overview of available plugin types
-  - `plugin-type-*.md` – Details and skeletons for specific plugin types
-  - `ui-and-screens.md` – How to show screens and handle user interaction
-  - `sdk-services.md` – How to interact with SDK services
-  - `templating.md` – How the templating system works
-  - `configuration.md` – How plugins define and use configuration
-  - `recipes.md` – Common patterns and example flows
+  - `plugin-type-*.md` – Details and skeletons for specific plugin types (e.g., authenticator)
+  - `request-handlers.md` – How to implement request handlers for multi-step flows
+  - `sdk-services.md` – How to interact with SDK services (credentials, accounts, SMS, etc.)
+  - `templating.md` – How the Velocity templating system works
+  - `attributes.md` – Working with attributes and authentication results
+  - `testing.md` – How to write unit tests with Spock Framework
+  - `build-and-deployment.md` – Build configuration and deployment steps
+  - `recipes.md` – Complete end-to-end examples and common patterns
+  - `quick-reference.md` – Task-oriented index for fast lookup
 
 ## How to Use in Other Repositories
 
