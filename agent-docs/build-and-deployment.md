@@ -170,7 +170,6 @@ tasks.register('deployToLocal', Sync) {
     }
     
     def idsvr_home = System.getenv('IDSVR_HOME')
-    def pluginName = project.name
     
     from createDeployDir
     into file("$idsvr_home/usr/share/plugins/")
