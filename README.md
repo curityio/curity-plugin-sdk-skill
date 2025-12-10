@@ -43,10 +43,6 @@ The goal is to give agents:
 
 When creating a new Curity plugin project:
 
-1. Copy `INSTRUCTIONS.md` and the `agent-docs/` folder into the root of the plugin repo.  
-2. Optionally copy `.github/copilot-instructions.md` into `.github/` in that repo.  
-3. Use your IDE’s coding agent (Copilot, Gemini, etc.) as usual. It will automatically
-   read and use these documents as context when generating code.
-
-This creates a standard “knowledge pack” that improves the quality and consistency
-of generated plugins across projects.
+1. Clone this repository
+2. Create a new plugin using a prompt, or clone an existing plugin to a subfolder to this repo. These can not be committed.
+3. If you create a new plugin, initialize a git repository in the created subfolder
