@@ -1,0 +1,14 @@
+# Ignore all subfolders except agent-docs and .github
+/**/*
+!agent-docs/
+!.github/
+
+# Allow files in root
+!/*
+
+# Standard ignores
+.DS_Store
+*.iml
+.idea/
+*.swp
+*~
