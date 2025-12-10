@@ -131,7 +131,7 @@ Prepares the plugin for deployment by creating a build directory with all necess
 tasks.register('createDeployDir', Copy) {
     dependsOn jar
     
-    destinationDir = file("$buildDir/deploy/username-password-authenticator")
+    destinationDir = file("$buildDir/deploy/${project.name}")
     
     // Copy plugin JAR
     from(jar)
@@ -170,13 +170,13 @@ tasks.register('deployToLocal', Sync) {
     }
     
     def idsvr_home = System.getenv('IDSVR_HOME')
-    def pluginName = 'username-password-authenticator'
+    def pluginName = project.name
     
-    from file("$buildDir/deploy/$pluginName")
-    into file("$idsvr_home/usr/share/plugins/$pluginName")
+    from createDeployDir
+    into file("$idsvr_home/usr/share/plugins/")
     
     doLast {
-        println "Plugin installed to: $idsvr_home/usr/share/plugins/$pluginName"
+        println "Plugin installed to: $idsvr_home/usr/share/plugins/${project.name}"
         println "Restart the Curity Identity Server to load the plugin."
     }
 }
@@ -196,10 +196,13 @@ tasks.register('deployToLocal', Sync) {
 
 ## 6. Development Workflow
 
-1. **Build the plugin:** `./gradlew build`
-2. **Prepare for deployment:** `./gradlew createDeployDir`
-3. **Install to local server:** `./gradlew deployToLocal` (requires `IDSVR_HOME`)
-4. **Restart the Curity Identity Server** to load the plugin
+1. **Initialize Gradle wrapper (if not present):** `gradle wrapper --gradle-version 8.14.3`
+2. **Build the plugin:** `./gradlew build`
+3. **Prepare for deployment:** `./gradlew createDeployDir`
+4. **Install to local server:** `./gradlew deployToLocal` (requires `IDSVR_HOME`)
+5. **Restart the Curity Identity Server** to load the plugin
+
+**Note:** Always install the Gradle wrapper before building. If the wrapper is not present in your project, run `gradle wrapper --gradle-version 8.14.3` to generate it. This ensures consistent builds across different environments.
 
 ## 7. Best Practices
 
