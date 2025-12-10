@@ -520,6 +520,200 @@ fun callExternalService(username: String): UserData {
 
 ---
 
+## Authentication Actions
+
+### Recipe 6: Conditional Denial Action
+
+An authentication action that denies authentication based on an attribute value.
+
+**Descriptor** (`DenyAuthenticationActionDescriptor.kt`):
+```kotlin
+package io.curity.identityserver.plugin.deny.descriptor
+
+import io.curity.identityserver.plugin.deny.DenyAuthenticationAction
+import io.curity.identityserver.plugin.deny.DenyAuthenticationActionConfiguration
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationAction
+import se.curity.identityserver.sdk.plugin.descriptor.AuthenticationActionPluginDescriptor
+
+class DenyAuthenticationActionDescriptor : 
+    AuthenticationActionPluginDescriptor<DenyAuthenticationActionConfiguration> {
+    
+    override fun getPluginImplementationType(): Class<out AuthenticationAction> =
+        DenyAuthenticationAction::class.java
+    
+    override fun getConfigurationType(): Class<out DenyAuthenticationActionConfiguration> =
+        DenyAuthenticationActionConfiguration::class.java
+}
+```
+
+**Configuration** (`DenyAuthenticationActionConfiguration.kt`):
+```kotlin
+package io.curity.identityserver.plugin.deny
+
+import se.curity.identityserver.sdk.authenticationaction.AttributeSource
+import se.curity.identityserver.sdk.config.Configuration
+import se.curity.identityserver.sdk.config.annotation.DefaultEnum
+import se.curity.identityserver.sdk.config.annotation.Description
+import se.curity.identityserver.sdk.service.ExceptionFactory
+import java.util.Optional
+
+interface DenyAuthenticationActionConfiguration : Configuration {
+    
+    fun getExceptionFactory(): ExceptionFactory
+    
+    @Description("Error message to display when authentication is denied")
+    fun getError(): Optional<String>
+    
+    @Description("Mode for determining when to deny authentication")
+    fun getMode(): Mode
+    
+    interface Mode {
+        fun getAlways(): Optional<Always>
+        fun getAttributeCondition(): Optional<AttributeCondition>
+        
+        interface Always
+        
+        interface AttributeCondition {
+            @Description("Name of the attribute to check")
+            fun getName(): String
+            
+            @Description("Where to look for the attribute")
+            @DefaultEnum("SUBJECT_ATTRIBUTES")
+            fun getSource(): AttributeSource
+            
+            @Description("Expected boolean value to trigger denial")
+            fun getExpectedValue(): Boolean
+        }
+    }
+}
+```
+
+**Action** (`DenyAuthenticationAction.kt`):
+```kotlin
+package io.curity.identityserver.plugin.deny
+
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationAction
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationActionContext
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationActionResult
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationActionResult.failedResult
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationActionResult.successfulResult
+import se.curity.identityserver.sdk.errors.ErrorCode
+
+class DenyAuthenticationAction(
+    private val config: DenyAuthenticationActionConfiguration
+) : AuthenticationAction {
+    
+    override fun apply(context: AuthenticationActionContext): AuthenticationActionResult {
+        val error = config.error.orElse("Access denied")
+        
+        return when {
+            // Always deny mode
+            config.mode.always.isPresent -> failedResult(error)
+            
+            // Conditional denial based on attribute
+            config.mode.attributeCondition.isPresent -> {
+                val condition = config.mode.attributeCondition.get()
+                val attributes = condition.source.getFrom(context)
+                val attribute = attributes.get(condition.name)
+                val attributeValue = attribute?.value?.toString()?.toBoolean() ?: false
+                
+                if (attributeValue == condition.expectedValue) {
+                    failedResult(error)
+                } else {
+                    successfulResult(context.authenticationAttributes, context.actionAttributes)
+                }
+            }
+            
+            else -> throw config.exceptionFactory.internalServerException(
+                ErrorCode.GENERIC_ERROR,
+                "Unknown mode: ${config.mode}"
+            )
+        }
+    }
+}
+```
+
+**Service Descriptor** (`META-INF/services/se.curity.identityserver.sdk.plugin.descriptor.AuthenticationActionPluginDescriptor`):
+```
+io.curity.identityserver.plugin.deny.descriptor.DenyAuthenticationActionDescriptor
+```
+
+**Test** (`DenyAuthenticationActionSpec.groovy`):
+```groovy
+package io.curity.identityserver.plugin.deny
+
+import se.curity.identityserver.sdk.attribute.Attribute
+import se.curity.identityserver.sdk.attribute.AuthenticationAttributes
+import se.curity.identityserver.sdk.attribute.SubjectAttributes
+import se.curity.identityserver.sdk.authenticationaction.AuthenticationActionContext
+import se.curity.identityserver.sdk.authenticationaction.AttributeSource
+import spock.lang.Specification
+
+class DenyAuthenticationActionSpec extends Specification {
+    
+    def config
+    def action
+    
+    def setup() {
+        config = Mock(DenyAuthenticationActionConfiguration)
+        action = new DenyAuthenticationAction(config)
+    }
+    
+    def "should deny when attribute condition is met"() {
+        given: "a context with blocked attribute set to true"
+        def subjectAttributes = SubjectAttributes.of("testuser")
+            .with(Attribute.of("blocked", true))
+        def authAttributes = AuthenticationAttributes.of(subjectAttributes)
+        def context = Mock(AuthenticationActionContext)
+        context.authenticationAttributes >> authAttributes
+        
+        and: "config checks for blocked attribute"
+        def mode = Mock(DenyAuthenticationActionConfiguration.Mode)
+        def condition = Mock(DenyAuthenticationActionConfiguration.Mode.AttributeCondition)
+        condition.name >> "blocked"
+        condition.source >> AttributeSource.SUBJECT_ATTRIBUTES
+        condition.expectedValue >> true
+        mode.attributeCondition >> Optional.of(condition)
+        mode.always >> Optional.empty()
+        config.mode >> mode
+        config.error >> Optional.of("User is blocked")
+        
+        when: "applying the action"
+        def result = action.apply(context)
+        
+        then: "authentication is denied"
+        !result.isSuccessful()
+        result.errorMessage == "User is blocked"
+    }
+    
+    def "should succeed when attribute condition is not met"() {
+        given: "a context without blocked attribute"
+        def subjectAttributes = SubjectAttributes.of("testuser")
+        def authAttributes = AuthenticationAttributes.of(subjectAttributes)
+        def context = Mock(AuthenticationActionContext)
+        context.authenticationAttributes >> authAttributes
+        
+        and: "config checks for blocked attribute"
+        def mode = Mock(DenyAuthenticationActionConfiguration.Mode)
+        def condition = Mock(DenyAuthenticationActionConfiguration.Mode.AttributeCondition)
+        condition.name >> "blocked"
+        condition.source >> AttributeSource.SUBJECT_ATTRIBUTES
+        condition.expectedValue >> true
+        mode.attributeCondition >> Optional.of(condition)
+        mode.always >> Optional.empty()
+        config.mode >> mode
+        
+        when: "applying the action"
+        def result = action.apply(context)
+        
+        then: "authentication succeeds"
+        result.isSuccessful()
+    }
+}
+```
+
+---
+
 ## Testing Patterns
 
 ### Recipe 5: Basic Handler Test
@@ -596,6 +790,7 @@ class UsernamePasswordRequestHandlerSpec extends Specification {
 - Multi-screen flow? → Recipe 2 (SMS OTP)
 - Add account attributes? → Recipe 3 (Attribute Enrichment)
 - Call external API? → Recipe 4 (External Service Integration)
+- Deny authentication conditionally? → Recipe 6 (Conditional Denial Action)
 - Write tests? → Recipe 5 (Basic Handler Test)
 
 **See also:**

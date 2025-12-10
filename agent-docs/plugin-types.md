@@ -20,3 +20,19 @@ Key responsibilities:
 
 See: `plugin-type-authentication.md` for implementation details and code skeletons.
 
+## 2. Authentication Action Plugins
+
+Use when:
+
+- Running logic **after authentication** but before completing the flow.
+- **Enriching** authentication with additional attributes or context.
+- **Denying** authentication based on policies or conditions.
+- **Prompting users** for additional input (terms acceptance, attribute collection, etc.).
+
+Key responsibilities:
+
+- Receive an already-authenticated context with `AuthenticationAttributes`.
+- Either allow the authentication to continue (success), deny it (failed), or prompt for user input (pending).
+- Optionally enrich the authentication with additional attributes.
+
+See: `plugin-type-authentication-action.md` for implementation details and code skeletons.

@@ -1,7 +1,17 @@
 # Templating
 
 ## 1. Template path
-View templates should be placed relative to the resources directory in `templates/<plugin-type>/<plugin-impl-type>`. So if you are building an authenticator with the name `my-good-authn`, the base path should be `templates/authenticator/my-good-authn`.
+View templates should be placed relative to the resources directory in `templates/<plugin-type>/<plugin-impl-type>/<request-handler-path>/`. 
+
+**Examples:**
+- Authenticator: `templates/authenticator/username-password/authenticate/get.vm`
+- Authentication Action: `templates/authentication-action/info-message/index/get.vm`
+
+The full path includes:
+1. Plugin type (e.g., `authenticator`, `authentication-action`)
+2. Plugin implementation type (e.g., `username-password`, `info-message`)
+3. Request handler path (e.g., `authenticate`, `index`)
+4. HTTP method file (e.g., `get.vm`, `post.vm`)
 
 **Template files must use the `.vm` extension** as they use Apache Velocity template syntax.
 
@@ -28,44 +38,72 @@ Templates use the `#message()` directive to support localization. The `$_templat
 #message("${_templatePrefix}.key.for.message")
 ```
 
-**Example:** For template `templates/authenticator/username-password/authenticate/get.vm`:
-- `${_templatePrefix}` resolves to `authenticator.username-password.authenticate`
-- `#message("${_templatePrefix}.username.label")` looks up `authenticator.username-password.authenticate.username.label`
+**How `${_templatePrefix}` works:**
 
-**Message files** are stored in `src/main/resources/messages/<locale>/` directory:
-- English: `messages/en/authenticator.properties`
-- Swedish: `messages/sv/authenticator.properties`
-- Messages can be split across multiple property files for organization
+For template `templates/authentication-action/info-message/index/get.vm`:
+- `${_templatePrefix}` resolves to `authentication-action.info-message.index`
+- `#message("${_templatePrefix}.content")` looks up `authentication-action.info-message.index.content`
 
-Example message file (`messages/en/authenticator.properties`):
-```properties
-authenticator.username-password.authenticate.username.label=Username
-authenticator.username-password.authenticate.password.label=Password
-authenticator.username-password.authenticate.submit.label=Login
+**Message files folder structure:**
+
+Message files are stored in `src/main/resources/messages/<locale>/<plugin-type>/<plugin-impl-type>/` directory, mirroring the template structure.
+
+**Structure:**
+```
+messages/
+  en/                                    # Locale (en, sv, etc.)
+    authentication-action/               # Plugin type
+      info-message/                      # Plugin implementation type
+        messages.properties              # Message file (can have any name ending in .properties)
 ```
 
-Example `get.vm` with localization:
+**Message key structure:**
 
+Since the folder path already includes `<locale>/<plugin-type>/<plugin-impl-type>`, message keys only need the **request handler path and property name**.
+
+Example message file (`messages/en/authentication-action/info-message/messages.properties`):
+```properties
+# Keys start with request handler path, not full plugin path
+index.content=This is an important informational message.
+index.button.continue=Continue
+```
+
+**Why keys are short:**
+- Template path: `templates/authentication-action/info-message/index/get.vm`
+- Message folder: `messages/en/authentication-action/info-message/`
+- `${_templatePrefix}`: `authentication-action.info-message.index`
+- The server combines folder path + file keys to resolve full message key
+
+**Complete example:**
+
+Template at `templates/authentication-action/info-message/index/get.vm`:
 ```velocity
 #define($_body)
-    #if($_error)
-    <div class="alert alert-danger">$_error</div>
-    #end
+    <div class="alert alert-info mb2">
+        <p>#message("${_templatePrefix}.content")</p>
+    </div>
     
-    <form method="post">
-        <label for="username">#message("${_templatePrefix}.username.label")</label>
-        <input type="text" id="username" name="username" value="$!_username" 
-               placeholder="#message("${_templatePrefix}.username.placeholder")" />
-        
-        <label for="password">#message("${_templatePrefix}.password.label")</label>
-        <input type="password" id="password" name="password" 
-               placeholder="#message("${_templatePrefix}.password.placeholder")" />
-        
-        <button type="submit">#message("${_templatePrefix}.submit.label")</button>
+    <form method="post" action="">
+        <button type="submit" class="button button-fullwidth mt2">
+            #message("${_templatePrefix}.button.continue")
+        </button>
     </form>
 #end
 #parse('layouts/default')
 ```
+
+Messages at `messages/en/authentication-action/info-message/messages.properties`:
+```properties
+# Request handler path is 'index', so keys start with 'index.'
+index.content=This is an important informational message.
+index.button.continue=Continue
+```
+
+How it resolves:
+- `${_templatePrefix}` = `authentication-action.info-message.index`
+- `#message("${_templatePrefix}.content")` looks up `authentication-action.info-message.index.content`
+- Server finds file at `messages/en/authentication-action/info-message/*.properties`
+- Server looks for key `index.content` in that file
 
 ## 5. Naming Convention for Model Variables
 

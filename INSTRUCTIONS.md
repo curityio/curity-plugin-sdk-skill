@@ -29,8 +29,11 @@ When the user asks you to write or modify plugin code, use these references:
 - `agent-docs/plugin-types.md`  
   Overview of plugin types and when to use which type.
 
-- `agent-docs/plugin-type-authentication.md`  
-  How to implement authentication-related plugins. Includes skeletons.
+- `agent-docs/plugin-type-authenticator.md`  
+  How to implement authenticator plugins. Includes skeletons.
+
+- `agent-docs/plugin-type-authentication-action.md`  
+  How to implement authentication action plugins (post-authentication logic). Includes skeletons.
 
 - `agent-docs/plugin-type-token.md`  
   How to implement token-related plugins. Includes skeletons.

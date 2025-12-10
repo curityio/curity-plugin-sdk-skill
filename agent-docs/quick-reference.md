@@ -15,6 +15,15 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Return authentication result | `sdk-services.md` → AuthenticationResult |
 | Add account attributes to result | `attributes.md` → AuthenticationAttributes |
 
+### Authentication Actions (Post-Authentication)
+| Task | Location |
+|------|----------|
+| Deny authentication based on conditions | `plugin-type-authentication-action.md` → Pattern 1 |
+| Enrich authentication with attributes | `plugin-type-authentication-action.md` → Pattern 2 |
+| Prompt user for additional input | `plugin-type-authentication-action.md` → Pattern 3 |
+| Access attributes from context | `plugin-type-authentication-action.md` → Accessing Attributes |
+| Return success/failed/pending result | `plugin-type-authentication-action.md` → AuthenticationActionResult Types |
+
 ### Multi-Screen Flows
 | Task | Location |
 |------|----------|
@@ -86,6 +95,7 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Requirement | Plugin Type | Documentation |
 |-------------|-------------|---------------|
 | Authenticate users | Authenticator | `plugin-type-authenticator.md` |
+| Post-authentication logic | Authentication Action | `plugin-type-authentication-action.md` |
 | Issue/validate tokens | Token Handler | `plugin-type-token.md` (when created) |
 | See all types | All types | `plugin-types.md` |
 

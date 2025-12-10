@@ -202,24 +202,24 @@ fun getSessionManager(): SessionManager
 val sessionManager = config.getSessionManager()
 
 // Store simple values
-sessionManager.put(Attribute.of("otp", "123456"))
-sessionManager.put(Attribute.of("username", username))
+sessionManager.put(Attribute.of("otp-session-key", "123456"))
+sessionManager.put(Attribute.of("username-session-key", username))
 
 // Store complex objects
 val account = accountManager.getByUserName(username)
-sessionManager.put(Attribute.of("account", MapAttributeValue.of(account.toMap)))
+sessionManager.put(Attribute.of("account-session-key", MapAttributeValue.of(account.toMap)))
 
 // Retrieve values
-val otp = sessionManager.get("otp")?.getAttributeValue()?.getValue() as String?
-val username = sessionManager.get("username")?.getAttributeValue()?.getValue() as String?
+val otp: String? = sessionManager.get("otp-session-key")?.getAttributeValue()?.getValue() as String?
+val username: String? = sessionManager.get("username-session-key")?.getAttributeValue()?.getValue() as String?
 
 // Retrieve attributes for direct reuse
-val accountAttribute = sessionManager.get("account")  // Returns Attribute, not unwrapped value
+val accountAttribute: Attribute = sessionManager.get("account-session-key")  // Returns Attribute, not unwrapped value
 
 // Clean up session data
-sessionManager.remove("otp")
-sessionManager.remove("username")
-sessionManager.remove("account")
+sessionManager.remove("otp-session-key")
+sessionManager.remove("username-session-key")
+sessionManager.remove("account-session-key")
 ```
 
 **Important Notes**:
@@ -383,30 +383,7 @@ return Optional.of(AuthenticationResult(authenticationAttributes as Authenticati
 
 **See also**: `attributes.md` for complete attribute framework documentation, `recipes.md` for working examples.
 
-## 5. Logging
-
-**Return Type**: Returns `Attributes` which can be cast to `AuthenticationAttributes` for use in `AuthenticationResult` constructor.
-
-**Example Usage**:
-```kotlin
-// With subject attributes only
-val subjectAttributes = SubjectAttributes.of(
-    listOf(
-        Attribute.of("subject", username),
-        Attribute.of("email", email),
-        Attribute.of("account", accountAttributes as AttributeValue)
-    )
-)
-val authAttributes = AuthenticationAttributes.of(subjectAttributes)
-return Optional.of(AuthenticationResult(authAttributes as AuthenticationAttributes))
-
-// With both subject and context attributes
-val contextAttributes = ContextAttributes.of(
-    Attribute.of("authenticationMethod", "sms-otp"),
-    Attribute.of("authenticationTime", System.currentTimeMillis())
-**See also**: `attributes.md` for complete attribute framework documentation, `recipes.md` for working examples.
-
-## 5. Logging
+## 8. Logging
 
 ### SLF4J Logger
 
@@ -444,7 +421,7 @@ logger.error("Error occurred during operation: {}", username, exception)
 - Never log sensitive data (passwords, tokens, etc.)
 - Log at entry/exit of important operations for troubleshooting
 
-## 6. Server-Provided Dependencies
+## 9. Server-Provided Dependencies
 
 All plugins should mark these as `compileOnly` in Gradle:
 
