@@ -58,7 +58,19 @@ For Curity developers, all source files should include the Curity copyright head
 # For further information, please contact Curity AB.
 ```
 
-## 2. Build System
+## 2. Repository Configuration
+
+**IMPORTANT:** Always use **ONLY** `mavenCentral()` for repositories.
+
+The Curity SDK and all required dependencies are available from Maven Central. Do not add any other repositories (including `repo.curity.io`).
+
+```gradle
+repositories {
+    mavenCentral()
+}
+```
+
+## 3. Build System
 Curity plugins use **Gradle with Groovy DSL** for build configuration.
 
 **Key build settings:**
@@ -103,7 +115,7 @@ kotlin {
 }
 ```
 
-## 3. Server-Provided Dependencies
+## 4. Server-Provided Dependencies
 The Curity Identity Server provides these dependencies at runtime. They must be declared as `compileOnly`:
 
 - **SDK**: `se.curity.identityserver:identityserver.sdk:10.6.1`
@@ -113,7 +125,7 @@ The Curity Identity Server provides these dependencies at runtime. They must be 
 
 **Important:** Never include these as `implementation` or `runtimeOnly` dependencies, as they are already present in the server classpath.
 
-## 4. Deployment Structure
+## 5. Deployment Structure
 Plugins are deployed to: `$IDSVR_HOME/usr/share/plugins/<plugin-name>/`
 
 The deployment directory should contain:
@@ -122,7 +134,7 @@ The deployment directory should contain:
 
 All JARs must be in the **same directory** (no subdirectories).
 
-## 5. Gradle Tasks
+## 6. Gradle Tasks
 
 ### `createDeployDir`
 Prepares the plugin for deployment by creating a build directory with all necessary files.
