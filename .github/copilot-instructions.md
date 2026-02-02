@@ -2,32 +2,45 @@
 
 You are assisting with **Curity Identity Server plugin development**.
 
-Follow these rules:
+## Priorities
+1. Prefer **correctness, security, and maintainability** over brevity.
+2. **Do not invent Curity-specific APIs.** If a required type/method/config key is not present in the repo or referenced docs, stop and ask for missing context (or point to where it should be found).
 
-1. Prefer **correctness, security, and maintainability** over brevity or cleverness.
-2. Use the **Curity Plugin SDK** concepts and patterns described in:
-   - `agent-docs/plugin-system.md` - Core plugin architecture and lifecycle
-   - `agent-docs/plugin-types.md` - Available plugin types overview
-   - `agent-docs/plugin-type-authenticator.md` - Authenticator plugin patterns
-   - `agent-docs/plugin-type-authentication-action.md` - Authentication action patterns
-   - `agent-docs/request-handlers.md` - Request handler implementation and validation
-   - `agent-docs/sdk-services.md` - Available SDK services (credential management, sessions, etc.)
-   - `agent-docs/templating.md` - Velocity template structure and localization
-   - `agent-docs/attributes.md` - Attributes framework and data handling
-   - `agent-docs/testing.md` - Unit testing with Spock framework
-   - `agent-docs/build-and-deployment.md` - Gradle build configuration and deployment
-   - `agent-docs/recipes.md` - Complete working examples
-   - `agent-docs/quick-reference.md` - Quick lookup guide
-3. When generating plugin code:
-   - Choose the appropriate plugin type from `agent-docs/plugin-types.md`
-   - Start from the recommended skeleton in the relevant `plugin-type-*.md` file
-   - Use SDK services according to `agent-docs/sdk-services.md`
-   - Follow request handler patterns from `agent-docs/request-handlers.md`
-   - Use the templating system as described in `agent-docs/templating.md`
-   - Include unit tests following patterns in `agent-docs/testing.md`
-   - Configure build according to `agent-docs/build-and-deployment.md`
-4. Explain your reasoning briefly when the user asks “how” or “why”, but otherwise
-   focus on producing complete, high-quality code.
+## Source of truth (in priority order)
+1. The **current repository** (existing implementations, tests, build files).
+2. **Curity Plugin SDK Javadocs** (exact interfaces, types, signatures).
+3. `agent-docs/*.md` (Curity patterns, skeletons, recipes).
+4. Public example plugins (pattern/reference only; do not assume API details).
 
-If something is unclear, prefer to say what’s missing and refer to the relevant
-`agent-docs/*.md` file instead of guessing Curity-specific APIs.
+## Where to look first (routing)
+- **Choose plugin type / extension point:** `agent-docs/plugin-types.md`
+- **Authenticator:** `agent-docs/plugin-type-authenticator.md`, `agent-docs/request-handlers.md`, `agent-docs/sdk-services.md`
+- **Authentication Action:** `agent-docs/plugin-type-authentication-action.md`, `agent-docs/templating.md`, `agent-docs/attributes.md`
+- **Testing:** `agent-docs/testing.md`
+- **Build & deployment:** `agent-docs/build-and-deployment.md`
+- **End-to-end examples:** `agent-docs/recipes.md`
+- **Quick lookup:** `agent-docs/quick-reference.md`
+
+## Default workflow (apply unless instructed otherwise)
+1. Restate the goal and identify the **plugin type** and relevant docs.
+2. Propose a short plan with the **files you will change**.
+3. Confirm any required SDK interfaces/types against the **Javadocs or repo**.
+4. Implement the smallest viable change set.
+5. Add/update unit tests (follow `agent-docs/testing.md`).
+6. Run verification (or provide exact commands if execution is not available).
+7. Provide a final summary and test instructions.
+
+## Security and quality gates (non-negotiable)
+- Validate and sanitize all external inputs in request handlers.
+- Never log secrets, tokens, credentials, or sensitive personal data; redact where needed.
+- Avoid new dependencies unless explicitly required; call out any additions clearly.
+- Preserve configuration compatibility; document migrations if keys/structure change.
+- Provide tests for new behavior and bug fixes.
+
+## Required response format
+- **Plan**
+- **Patch** (diffs or clearly delimited file contents)
+- **How to test** (exact commands)
+- **Notes** (config changes, risks, follow-ups)
+
+If something is unclear, state what is missing and point to the most relevant `agent-docs/*.md` file (or the Javadocs) rather than guessing.

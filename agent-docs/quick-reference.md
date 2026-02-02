@@ -95,6 +95,7 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Requirement | Plugin Type | Documentation |
 |-------------|-------------|---------------|
 | Authenticate users | Authenticator | `plugin-type-authenticator.md` |
+| CIBA / out-of-band authentication | Backchannel Authenticator | `plugin-type-backchannel-authenticator.md` |
 | Post-authentication logic | Authentication Action | `plugin-type-authentication-action.md` |
 | Issue/validate tokens | Token Handler | `plugin-type-token.md` (when created) |
 | See all types | All types | `plugin-types.md` |

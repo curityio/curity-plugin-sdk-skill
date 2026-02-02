@@ -18,9 +18,27 @@ Key responsibilities:
 - Validate or exchange credentials.
 - Produce an authenticated subject or identity, or fail.
 
-See: `plugin-type-authentication.md` for implementation details and code skeletons.
+See: `plugin-type-authenticator.md` for implementation details and code skeletons.
 
-## 2. Authentication Action Plugins
+## 2. Backchannel Authenticator Plugins
+
+Use when:
+
+- **Clients integrate with Curity using CIBA** (Client Initiated Backchannel Authentication).
+- Authentication with external provider uses **any backchannel protocol** (not necessarily CIBA).
+- **Cannot show screens** to the client - pure API-based flow.
+- Authentication happens **out-of-band** (mobile push, separate device, polling).
+
+Key responsibilities:
+
+- Initiate authentication with external provider.
+- Poll or receive notifications about authentication status.
+- Map external states to Curity states (STARTED, SUCCEEDED, FAILED, EXPIRED).
+- Return authentication attributes on success.
+
+See: `plugin-type-backchannel-authenticator.md` for implementation details and code skeletons.
+
+## 3. Authentication Action Plugins
 
 Use when:
 

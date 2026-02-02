@@ -7,7 +7,7 @@ For Curity developers, all source files should include the Curity copyright head
 **Kotlin/Java files:**
 ```kotlin
 /*
- * Copyright (C) 2025 Curity AB. All rights reserved.
+ * Copyright (C) $today.year Curity AB. All rights reserved.
  *
  * The contents of this file are the property of Curity AB.
  * You may not copy or use this file, in either source code
@@ -21,7 +21,7 @@ For Curity developers, all source files should include the Curity copyright head
 **Velocity templates (.vm files):**
 ```velocity
 ##
-## Copyright (C) 2025 Curity AB. All rights reserved.
+## Copyright (C) $today.year Curity AB. All rights reserved.
 ##
 ## The contents of this file are the property of Curity AB.
 ## You may not copy or use this file, in either source code
@@ -35,7 +35,7 @@ For Curity developers, all source files should include the Curity copyright head
 **Gradle files (.gradle):**
 ```groovy
 /*
- * Copyright (C) 2025 Curity AB. All rights reserved.
+ * Copyright (C) $today.year Curity AB. All rights reserved.
  *
  * The contents of this file are the property of Curity AB.
  * You may not copy or use this file, in either source code
@@ -48,7 +48,7 @@ For Curity developers, all source files should include the Curity copyright head
 
 **Properties files (.properties):**
 ```properties
-# Copyright (C) 2025 Curity AB. All rights reserved.
+# Copyright (C) $today.year Curity AB. All rights reserved.
 #
 # The contents of this file are the property of Curity AB.
 # You may not copy or use this file, in either source code
@@ -140,7 +140,7 @@ All JARs must be in the **same directory** (no subdirectories).
 Prepares the plugin for deployment by creating a build directory with all necessary files.
 
 ```gradle
-tasks.register('createDeployDir', Copy) {
+tasks.register('createDeployDir', Sync) {
     dependsOn jar
     
     destinationDir = file("$buildDir/deploy/${project.name}")
@@ -207,18 +207,18 @@ tasks.register('deployToLocal', Sync) {
 
 ## 6. Development Workflow
 
-1. **Initialize Gradle wrapper (if not present):** `gradle wrapper --gradle-version 8.14.3`
+1. **Initialize Gradle wrapper (if not present):** `gradle wrapper`
 2. **Build the plugin:** `./gradlew build`
 3. **Prepare for deployment:** `./gradlew createDeployDir`
 4. **Install to local server:** `./gradlew deployToLocal` (requires `IDSVR_HOME`)
 5. **Restart the Curity Identity Server** to load the plugin
 
-**Note:** Always install the Gradle wrapper before building. If the wrapper is not present in your project, run `gradle wrapper --gradle-version 8.14.3` to generate it. This ensures consistent builds across different environments.
+**Note:** Always install the Gradle wrapper before building. If the wrapper is not present in your project, run `gradle wrapper` to generate it. This ensures consistent builds across different environments.
 
 ## 7. Best Practices
 
 - Always use `compileOnly` for server-provided dependencies
 - Keep the plugin JAR small by not bundling server-provided libraries
 - Use semantic versioning for plugin versions
-- Test plugins locally before deploying to production
+- Test plugins locally before finishing your task
 - Document any custom runtime dependencies your plugin requires
