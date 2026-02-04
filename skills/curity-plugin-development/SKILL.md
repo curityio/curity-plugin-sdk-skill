@@ -1,3 +1,8 @@
+---
+name: curity-plugin-development
+description: Guide for developing plugins for the Curity Identity server using the Curity SDK
+---
+
 # Curity Plugin Development Skill
 
 A comprehensive skill for developing Curity Identity Server plugins, with expert knowledge of the Curity Plugin SDK, best practices, and common patterns.

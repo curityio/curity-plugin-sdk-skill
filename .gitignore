@@ -1,7 +1,9 @@
-# Ignore all subfolders except agent-docs and .github
+# Ignore all subfolders except specific ones
 /**/*
-!agent-docs/
-!.github/
+!agent-docs/**/*
+!.github/**/*
+!.claude-plugin/**/*
+!skills/**/*
 
 # Allow files in root
 !/*
