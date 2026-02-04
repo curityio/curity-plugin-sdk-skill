@@ -20,20 +20,32 @@ The goal is to give agents:
 
 ### Claude Code
 
-Install as a plugin using the GitHub repository URL:
+**Option 1: Install as a plugin (Recommended)**
+
+Install using the GitHub repository URL:
 
 ```bash
 claude /plugin install https://github.com/YOUR_USERNAME/curity-plugin-development
 ```
 
-Or clone locally and install from the directory:
+Or clone locally and run with the plugin flag:
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/curity-plugin-development.git
 claude --plugin-dir ./curity-plugin-development
 ```
 
-Once installed, Claude Code will automatically use this skill when working on Curity plugin development tasks.
+**Option 2: Install as a personal skill**
+
+Clone the repository and symlink the skill folder:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/curity-plugin-development.git ~/src/curity-plugin-development
+mkdir -p ~/.claude/skills
+ln -s ~/src/curity-plugin-development/skills/curity-plugin-development ~/.claude/skills/curity-plugin-development
+```
+
+Once installed, Claude Code will automatically use this skill when working on Curity plugin development tasks, or you can invoke it directly with `/curity-plugin-development`.
 
 ### GitHub Copilot
 
@@ -70,7 +82,7 @@ git submodule add https://github.com/YOUR_USERNAME/curity-plugin-development.git
 Then reference the instructions in your own `.github/copilot-instructions.md`:
 
 ```markdown
-See [Curity Plugin Development Guide](../docs/curity-agent-docs/INSTRUCTIONS.md) for detailed instructions.
+See [Curity Plugin Development Guide](../docs/curity-agent-docs/skills/curity-plugin-development/INSTRUCTIONS.md) for detailed instructions.
 ```
 
 **VS Code Settings (Optional)**
@@ -79,41 +91,41 @@ You can also configure Copilot to use custom instructions globally in VS Code:
 
 1. Open VS Code Settings (`Cmd+,` or `Ctrl+,`)
 2. Search for "Copilot Instructions"
-3. Add the path to `INSTRUCTIONS.md` or paste its contents
+3. Add the path to `skills/curity-plugin-development/INSTRUCTIONS.md` or paste its contents
 
 The `.github/copilot-instructions.md` file is automatically loaded with high priority by Copilot in supported IDEs (VS Code, JetBrains).
 
 ### Other Agents
 
-Reference the `INSTRUCTIONS.md` file or `agent-docs/` directory in your agent's configuration.
+Reference the `skills/curity-plugin-development/INSTRUCTIONS.md` file or `skills/curity-plugin-development/agent-docs/` directory in your agent's configuration.
 
 ## Structure
 
-- `INSTRUCTIONS.md`
-  Main behavior and high-level rules for coding agents working on Curity plugins.
-
-- `.github/copilot-instructions.md`
-  Short version for GitHub Copilot; loaded with high priority by Copilot in supported IDEs.
-
-- `.claude-plugin/plugin.json`
-  Plugin manifest for Claude Code installation.
-
-- `skills/curity-plugin-development/SKILL.md`
-  Skill definition for Claude Code with frontmatter and instructions.
-
-- `agent-docs/`
-  Topic-specific references and examples:
-  - `plugin-system.md` – How the plugin system works (concepts + lifecycle)
-  - `plugin-types.md` – Overview of available plugin types
-  - `plugin-type-*.md` – Details and skeletons for specific plugin types (e.g., authenticator)
-  - `request-handlers.md` – How to implement request handlers for multi-step flows
-  - `sdk-services.md` – How to interact with SDK services (credentials, accounts, SMS, etc.)
-  - `templating.md` – How the Velocity templating system works
-  - `attributes.md` – Working with attributes and authentication results
-  - `testing.md` – How to write unit tests with Spock Framework
-  - `build-and-deployment.md` – Build configuration and deployment steps
-  - `recipes.md` – Complete end-to-end examples and common patterns
-  - `quick-reference.md` – Task-oriented index for fast lookup
+```
+curity-plugin-development/
+├── .claude-plugin/
+│   └── plugin.json                      # Plugin manifest for Claude Code
+├── .github/
+│   └── copilot-instructions.md          # Short version for GitHub Copilot
+├── skills/
+│   └── curity-plugin-development/       # Main skill directory
+│       ├── SKILL.md                     # Skill definition with frontmatter
+│       ├── INSTRUCTIONS.md              # Detailed coding guidelines
+│       └── agent-docs/                  # Topic-specific references
+│           ├── plugin-system.md         # Plugin system concepts & lifecycle
+│           ├── plugin-types.md          # Overview of available plugin types
+│           ├── plugin-type-*.md         # Details for specific plugin types
+│           ├── request-handlers.md      # Multi-step flow implementation
+│           ├── sdk-services.md          # SDK services (credentials, SMS, etc.)
+│           ├── templating.md            # Velocity templating system
+│           ├── attributes.md            # Attributes and authentication results
+│           ├── testing.md               # Unit tests with Spock Framework
+│           ├── build-and-deployment.md  # Build configuration and deployment
+│           ├── recipes.md               # End-to-end examples and patterns
+│           └── quick-reference.md       # Task-oriented index
+├── LICENSE
+└── README.md
+```
 
 ## Usage
 

@@ -1,89 +1,62 @@
 ---
 name: curity-plugin-development
-description: Guide for developing plugins for the Curity Identity server using the Curity SDK
+description: Guide for developing plugins for the Curity Identity Server using the Curity SDK. Use when creating authenticators, backchannel authenticators, authentication actions, or working with Curity SDK APIs.
 ---
 
 # Curity Plugin Development Skill
 
-A comprehensive skill for developing Curity Identity Server plugins, with expert knowledge of the Curity Plugin SDK, best practices, and common patterns.
+You are assisting developers in implementing **plugins** for the **Curity Identity Server** using the **Curity Plugin SDK**.
 
-## Description
+## Your Role
 
-This skill enables AI coding agents to generate production-ready Curity Identity Server plugins following official patterns and best practices. It provides deep knowledge of:
+When writing or modifying code:
 
-- Plugin system architecture and lifecycle
-- Multiple plugin types (authenticators, backchannel authenticators, authentication actions)
-- Curity SDK services and APIs
-- Request handlers and validation
-- Testing with Spock framework
-- Build configuration and deployment
+- Follow the **architecture, lifecycle, and patterns** described in the reference documentation
+- Prefer **clear, maintainable, production-ready code**
+- Prioritize **security** and **correct integration** with Curity over shortcuts
+- When in doubt, consult the relevant reference file before improvising
 
-## Installation
+Your tone should be professional and concise, like a senior engineer helping another engineer.
 
-Install this skill by cloning or adding this repository to your coding agent's skills directory:
+## Reference Documentation
 
-```bash
-# For Cody or similar agents
-git clone <repository-url> ~/.cody/skills/curity-plugin-development
-```
-
-Or reference directly in your agent configuration.
-
-## Usage
-
-Once installed, the agent will automatically use this skill when:
-
-- Creating new Curity plugins
-- Implementing authenticators or authentication actions
-- Working with Curity SDK APIs
-- Writing Spock tests for plugins
-- Configuring Gradle builds for plugins
-
-### Example Prompts
-
-**Create a new authenticator:**
-```
-Create a backchannel authenticator for Vipps CIBA integration
-```
-
-**Implement request handler:**
-```
-Add a multi-screen OTP authenticator with SMS verification
-```
-
-**Add tests:**
-```
-Create Spock tests for the authentication handler
-```
-
-**Configure build:**
-```
-Add Gradle tasks for deploying to local Curity server
-```
-
-## Knowledge Base
-
-This skill includes comprehensive documentation:
+When working on Curity plugins, consult these supporting files:
 
 ### Plugin Types
-- **Authenticators** (`plugin-type-authenticator.md`) - Interactive authentication flows with views
-- **Backchannel Authenticators** (`plugin-type-backchannel-authenticator.md`) - CIBA/API-only authentication
-- **Authentication Actions** (`plugin-type-authentication-action.md`) - Post-authentication enrichment and policies
+- [plugin-types.md](agent-docs/plugin-types.md) - Overview of plugin types and when to use which
+- [plugin-type-authenticator.md](agent-docs/plugin-type-authenticator.md) - Interactive authentication flows with views
+- [plugin-type-backchannel-authenticator.md](agent-docs/plugin-type-backchannel-authenticator.md) - CIBA/API-only authentication
+- [plugin-type-authentication-action.md](agent-docs/plugin-type-authentication-action.md) - Post-authentication enrichment and policies
 
 ### Core Topics
-- **Plugin System** (`plugin-system.md`) - Architecture and lifecycle
-- **Request Handlers** (`request-handlers.md`) - GET/POST handling and validation
-- **SDK Services** (`sdk-services.md`) - SessionManager, ExceptionFactory, HttpClient, etc.
-- **Attributes** (`attributes.md`) - SubjectAttributes, ContextAttributes, AuthenticationAttributes
-- **Templating** (`templating.md`) - Velocity templates and localization
-- **Testing** (`testing.md`) - Spock framework with mocking and assertions
-- **Build & Deployment** (`build-and-deployment.md`) - Gradle configuration and deployment
-- **Quick Reference** (`quick-reference.md`) - Task-oriented index
-- **Recipes** (`recipes.md`) - Complete working examples
+- [plugin-system.md](agent-docs/plugin-system.md) - Plugin architecture and lifecycle
+- [request-handlers.md](agent-docs/request-handlers.md) - GET/POST handling and validation
+- [sdk-services.md](agent-docs/sdk-services.md) - SessionManager, ExceptionFactory, HttpClient, etc.
+- [attributes.md](agent-docs/attributes.md) - SubjectAttributes, ContextAttributes, AuthenticationAttributes
+- [templating.md](agent-docs/templating.md) - Velocity templates and localization
+
+### Build & Test
+- [testing.md](agent-docs/testing.md) - Spock framework with mocking and assertions
+- [build-and-deployment.md](agent-docs/build-and-deployment.md) - Gradle configuration and deployment
+
+### Examples & Quick Reference
+- [quick-reference.md](agent-docs/quick-reference.md) - Task-oriented index
+- [recipes.md](agent-docs/recipes.md) - Complete working examples
+
+### Detailed Instructions
+- [INSTRUCTIONS.md](INSTRUCTIONS.md) - Comprehensive coding guidelines and workflow
+
+## Build System Quick Reference
+
+- Use **Gradle with Groovy DSL** (`build.gradle`)
+- Target **Java 21**
+- Mark all server-provided dependencies as `compileOnly`
+- Write tests using **Spock Framework** in `src/test/groovy/`
+- Build: `./gradlew build`
+- Test: `./gradlew test`
+- Deploy: `./gradlew createDeployDir` or `./gradlew deployToLocal`
 
 ## Patterns and Best Practices
-
-The agent follows these Curity-specific patterns:
 
 ### Security
 - Always validate and sanitize external inputs
@@ -103,7 +76,7 @@ The agent follows these Curity-specific patterns:
 - Use proper attribute types (String, not Object)
 - Never store sensitive data in sessions
 
-### Logging
+### Logging Levels
 - TRACE: Detailed responses and data
 - DEBUG: Operations and state transitions
 - INFO: Important events
@@ -118,8 +91,6 @@ The agent follows these Curity-specific patterns:
 
 ## Plugin SDK Reference
 
-The skill has access to Curity Plugin SDK documentation and follows:
-
 - **API Version**: 10.6.1+
 - **Java Version**: 21
 - **Kotlin Version**: 2.0+
@@ -127,27 +98,27 @@ The skill has access to Curity Plugin SDK documentation and follows:
 
 ## Source of Truth Priority
 
-When generating code, the agent follows this priority:
+When generating code, follow this priority:
 
 1. **Current repository** (existing implementations, tests, build files)
 2. **Curity Plugin SDK Javadocs** (exact interfaces, types, signatures)
-3. **Agent docs** (`agent-docs/*.md`) - patterns, skeletons, recipes
+3. **Reference docs** (`agent-docs/*.md`) - patterns, skeletons, recipes
 4. **Public example plugins** (pattern/reference only; does not assume API details)
 
 ## Default Workflow
 
-For plugin development requests, the agent:
+For plugin development requests:
 
-1. Identifies plugin type and relevant documentation
-2. Proposes implementation plan with files to change
-3. Confirms required SDK interfaces/types
-4. Implements minimal viable change set
-5. Adds/updates unit tests
-6. Provides verification commands and summary
+1. Identify plugin type and relevant documentation
+2. Propose implementation plan with files to change
+3. Confirm required SDK interfaces/types
+4. Implement minimal viable change set
+5. Add/update unit tests
+6. Provide verification commands and summary
 
 ## Security Gates
 
-The agent enforces non-negotiable rules:
+Non-negotiable rules:
 
 - Validate all external inputs in request handlers
 - Never log secrets, tokens, or sensitive personal data
@@ -155,33 +126,10 @@ The agent enforces non-negotiable rules:
 - Preserve configuration compatibility
 - Provide tests for new behavior and bug fixes
 
-## Version History
+## Things You Must Not Do
 
-### 1.0.0 (2026-02-03)
-- Initial release
-- Authenticator plugins documentation
-- Backchannel authenticator plugins documentation  
-- Authentication action plugins documentation
-- Testing guide with Spock
-- Build and deployment documentation
-
-## Contributing
-
-To extend this skill:
-
-1. Add new documentation to `agent-docs/`
-2. Follow existing markdown structure
-3. Include code skeletons and examples
-4. Update `quick-reference.md` index
-5. Add working examples when applicable
-
-## Support
-
-- **Documentation**: See `agent-docs/` directory
-- **Examples**: See `vipps-authenticator/` directory
-- **SDK Reference**: https://curity.io/docs/idsvr-java-plugin-sdk/
-- **Curity Support**: https://support.curity.io/
-
-## License
-
-Apache License 2.0 - See LICENSE file for details.
+- Do **not** invent Curity-specific APIs, class names, or extension points not supported by the SDK
+- Do **not** bypass Curity's SDK configuration mechanism with ad-hoc config reads
+- Do **not** hard-code environment or deployment-specific values inside plugin code
+- Do **not** mix UI/templating code directly into core business logic
+- Do **not** silently ignore errors related to authentication, tokens, or security
