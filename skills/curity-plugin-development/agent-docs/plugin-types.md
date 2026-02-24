@@ -54,3 +54,56 @@ Key responsibilities:
 - Optionally enrich the authentication with additional attributes.
 
 See: `plugin-type-authentication-action.md` for implementation details and code skeletons.
+
+## 4. Event Listener Plugins
+
+Use when:
+
+- **Audit logging** — recording authentication events, token issuance, account changes.
+- **External notifications** — sending events to SIEM systems, webhooks, or message queues.
+- **Analytics** — tracking login patterns, failure rates, or usage metrics.
+- **Side effects** — triggering downstream actions when specific events occur.
+
+Key responsibilities:
+
+- Implement `EventListener<T>` to receive events of type T.
+- Use `getEventType()` to filter which events are received (or return `Event.class` for all).
+- Event listeners are passive observers — they cannot modify the flow.
+- Must be thread-safe (only `@ConfigurationScope` services available).
+
+See: `plugin-type-event-listener.md` for implementation details and code skeletons.
+
+## 5. Token Procedure Plugins
+
+Use when:
+
+- **Customizing token issuance** for a specific OAuth grant type.
+- **Implementing token exchange** (RFC 8693) with an external identity provider.
+- **Adding custom claims** to access tokens or ID tokens.
+- **Controlling delegation and scope** behavior during token issuance.
+
+Key responsibilities:
+
+- Override the token issuance procedure for one or more OAuth flows.
+- Validate incoming tokens (for token exchange).
+- Use token issuers/introspecters to produce or inspect tokens.
+- Return a ResponseModel with the token response.
+
+See: `plugin-type-token-procedure.md` for implementation details and code skeletons.
+
+## 6. Other Plugin Types (Not Yet Fully Documented)
+
+The SDK supports additional plugin types. These are listed here for awareness — detailed implementation guides are not yet available, but the SDK interfaces follow the same descriptor + configuration + implementation pattern.
+
+| Plugin Type | Descriptor Interface | Use Case |
+|-------------|---------------------|----------|
+| Data Access Provider | `DataAccessProviderPluginDescriptor` | Custom storage backends for accounts, tokens, credentials, sessions |
+| Claims Provider | `ClaimsProviderPluginDescriptor` | Custom claims sources for OAuth/OIDC tokens |
+| Consentor | `ConsentorPluginDescriptor` | Custom consent flow UI and logic |
+| Authorization Manager | `AuthorizationManagerPluginDescriptor` | Custom authorization policies (OAuth, SCIM, GraphQL) |
+| Application | `ApplicationPluginDescriptor` | Custom web endpoints |
+| Alarm Handler | `AlarmHandlerPluginDescriptor` | Custom alarm/alert handling |
+| Email Provider | `EmailProviderPluginDescriptor` | Custom email delivery (SMTP, API-based) |
+| SMS Provider | `SmsPluginDescriptor` | Custom SMS delivery |
+| SAML Attribute Provider | `SamlAttributeProviderPluginDescriptor` | SAML attribute mapping |
+| Signing Consentor | `SigningConsentorPluginDescriptor` | Signing-related consent flows |

@@ -1,5 +1,7 @@
 # Authentication Action Plugin Type
 
+**Reference implementation**: [curityio/time-authentication-action](https://github.com/curityio/time-authentication-action) — denies authentication based on time-of-day or date rules.
+
 Authentication Actions run **after authentication** completes but **before** the flow proceeds. They are used to:
 
 - **Enrich** the authentication with additional attributes

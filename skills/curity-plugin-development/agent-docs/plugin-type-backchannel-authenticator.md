@@ -2,6 +2,8 @@
 
 Use this document when generating code for **backchannel authenticator plugins** (CIBA - Client Initiated Backchannel Authentication).
 
+**Reference implementation**: [Curity-PS/vipps-backchannel](https://github.com/Curity-PS/vipps-backchannel) — a polling-based backchannel authenticator integrating with the Vipps API.
+
 ## 1. When to Use
 
 Implement a backchannel authenticator plugin when:

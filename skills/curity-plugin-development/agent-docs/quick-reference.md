@@ -97,8 +97,38 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Authenticate users | Authenticator | `plugin-type-authenticator.md` |
 | CIBA / out-of-band authentication | Backchannel Authenticator | `plugin-type-backchannel-authenticator.md` |
 | Post-authentication logic | Authentication Action | `plugin-type-authentication-action.md` |
-| Issue/validate tokens | Token Handler | `plugin-type-token.md` (when created) |
+| Listen to server events | Event Listener | `plugin-type-event-listener.md` |
+| Customize token issuance / token exchange | Token Procedure | `plugin-type-token-procedure.md` |
 | See all types | All types | `plugin-types.md` |
+
+---
+
+### Event Listeners
+| Task | Location |
+|------|----------|
+| Listen to all events | `plugin-type-event-listener.md` → Section 6 |
+| Filter by event type | `plugin-type-event-listener.md` → Section 6 (Specific Event Type) |
+| Multiple listeners in one plugin | `plugin-type-event-listener.md` → Section 7 |
+| Complete event listener example | `recipes.md` → Recipe 7 |
+
+### Token Procedures
+| Task | Location |
+|------|----------|
+| Implement token exchange | `plugin-type-token-procedure.md` → Section 5 |
+| Add custom claims to tokens | `plugin-type-token-procedure.md` → Section 7 |
+| Token exchange context API | `plugin-type-token-procedure.md` → Section 6 |
+| Complete token exchange example | `recipes.md` → Recipe 8 |
+
+### Configuration
+| Task | Location |
+|------|----------|
+| Understand configuration types | `configuration.md` → Section 2 |
+| Use default value annotations | `configuration.md` → Section 3 |
+| Add validation constraints | `configuration.md` → Section 4 |
+| Nested configuration interfaces | `configuration.md` → Section 6 |
+| OneOf (sum type) configuration | `configuration.md` → Section 6 |
+| EncryptedString for secrets | `configuration.md` → Section 9 |
+| ConfigurationScope boundary | `configuration.md` → Section 8 |
 
 ---
 
@@ -109,9 +139,21 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | UserCredentialManager | `se.curity.identityserver.sdk.service.credential` | Verify passwords | `sdk-services.md` → Section 1 |
 | ExceptionFactory | `se.curity.identityserver.sdk.service` | Create exceptions | `sdk-services.md` → Section 2 |
 | SessionManager | `se.curity.identityserver.sdk.service` | Store session data | `sdk-services.md` → Section 3 |
-| AccountManager | `se.curity.identityserver.sdk.service` | Look up accounts | *(inject via config)* |
-| SmsSender | `se.curity.identityserver.sdk.service` | Send SMS | *(inject via config)* |
-| SLF4J Logger | `org.slf4j` | Logging | `sdk-services.md` → Section 5 |
+| AccountManager | `se.curity.identityserver.sdk.service` | Look up accounts | `sdk-services.md` → Section 4 |
+| SmsSender | `se.curity.identityserver.sdk.service.sms` | Send SMS | `sdk-services.md` → Section 5 |
+| HttpClient | `se.curity.identityserver.sdk.service` | Low-level HTTP | `sdk-services.md` → Section 9 |
+| WebServiceClientFactory | `se.curity.identityserver.sdk.service` | Create HTTP clients | `sdk-services.md` → Section 9 |
+| WebServiceClient | `se.curity.identityserver.sdk.service` | API calls | `sdk-services.md` → Section 9 |
+| Json | `se.curity.identityserver.sdk.service` | JSON serialization | `sdk-services.md` → Section 10 |
+| EmailSender | `se.curity.identityserver.sdk.service` | Send emails | `sdk-services.md` → Section 11 |
+| NonceTokenIssuer | `se.curity.identityserver.sdk.service` | Single-use tokens | `sdk-services.md` → Section 12 |
+| UserPreferenceManager | `se.curity.identityserver.sdk.service` | Username cookie | `sdk-services.md` → Section 13 |
+| Bucket | `se.curity.identityserver.sdk.service` | Key-value storage | `sdk-services.md` → Section 14 |
+| Throttler | `se.curity.identityserver.sdk.service` | Rate limiting | `sdk-services.md` → Section 15 |
+| SystemInformationProvider | `se.curity.identityserver.sdk.service` | System info | `sdk-services.md` → Section 16 |
+| OriginalQueryExtractor | `se.curity.identityserver.sdk.service` | OAuth request params | `sdk-services.md` → Section 17 |
+| RequestingOAuthClient | `se.curity.identityserver.sdk.service` | OAuth client info | `sdk-services.md` → Section 17 |
+| SLF4J Logger | `org.slf4j` | Logging | `sdk-services.md` → Section 8 |
 
 ---
 
@@ -163,6 +205,9 @@ All examples in `recipes.md`:
 3. **Recipe 3**: Attribute Enrichment (adding account data)
 4. **Recipe 4**: External Service Integration (HTTP calls, error handling)
 5. **Recipe 5**: Basic Handler Test (Spock framework)
+6. **Recipe 6**: Conditional Denial Action
+7. **Recipe 7**: All-Events Logger (event listener)
+8. **Recipe 8**: External IdP Token Exchange (token procedure)
 
 ---
 
@@ -174,8 +219,11 @@ All examples in `recipes.md`:
 | `plugin-system.md` | System fundamentals | Understand plugin lifecycle |
 | `plugin-types.md` | Type selector | Choose plugin type |
 | `plugin-type-authenticator.md` | Authenticator guide | Implement authenticator |
+| `plugin-type-event-listener.md` | Event listener guide | Implement event listener |
+| `plugin-type-token-procedure.md` | Token procedure guide | Implement token procedure |
 | `request-handlers.md` | Handler patterns | Implement GET/POST logic |
 | `sdk-services.md` | Service API reference | Look up service methods |
+| `configuration.md` | Configuration deep dive | Annotations, constraints, nesting |
 | `attributes.md` | Attribute framework | Work with user/auth data |
 | `templating.md` | UI templates | Create user interfaces |
 | `testing.md` | Test framework | Write unit tests |

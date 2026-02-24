@@ -1,6 +1,6 @@
 ---
 name: curity-plugin-development
-description: Guide for developing plugins for the Curity Identity Server using the Curity SDK. Use when creating authenticators, backchannel authenticators, authentication actions, or working with Curity SDK APIs.
+description: Guide for developing plugins for the Curity Identity Server using the Curity SDK. Use when creating authenticators, backchannel authenticators, authentication actions, event listeners, token procedures, or working with Curity SDK APIs.
 ---
 
 # Curity Plugin Development Skill
@@ -23,15 +23,18 @@ Your tone should be professional and concise, like a senior engineer helping ano
 When working on Curity plugins, consult these supporting files:
 
 ### Plugin Types
-- [plugin-types.md](agent-docs/plugin-types.md) - Overview of plugin types and when to use which
+- [plugin-types.md](agent-docs/plugin-types.md) - Overview of all plugin types and when to use which
 - [plugin-type-authenticator.md](agent-docs/plugin-type-authenticator.md) - Interactive authentication flows with views
 - [plugin-type-backchannel-authenticator.md](agent-docs/plugin-type-backchannel-authenticator.md) - CIBA/API-only authentication
 - [plugin-type-authentication-action.md](agent-docs/plugin-type-authentication-action.md) - Post-authentication enrichment and policies
+- [plugin-type-event-listener.md](agent-docs/plugin-type-event-listener.md) - Audit logging and event handling
+- [plugin-type-token-procedure.md](agent-docs/plugin-type-token-procedure.md) - Custom token issuance and token exchange
 
 ### Core Topics
 - [plugin-system.md](agent-docs/plugin-system.md) - Plugin architecture and lifecycle
+- [configuration.md](agent-docs/configuration.md) - Configuration types, annotations, constraints, and nesting
 - [request-handlers.md](agent-docs/request-handlers.md) - GET/POST handling and validation
-- [sdk-services.md](agent-docs/sdk-services.md) - SessionManager, ExceptionFactory, HttpClient, etc.
+- [sdk-services.md](agent-docs/sdk-services.md) - All SDK services (HTTP, JSON, Email, Bucket, Throttler, etc.)
 - [attributes.md](agent-docs/attributes.md) - SubjectAttributes, ContextAttributes, AuthenticationAttributes
 - [templating.md](agent-docs/templating.md) - Velocity templates and localization
 
@@ -96,6 +99,15 @@ When working on Curity plugins, consult these supporting files:
 - **Kotlin Version**: 2.0+
 - **Test Framework**: Spock 2.3
 
+## Reference Plugins on GitHub
+
+| Plugin Type | Repository |
+|-------------|------------|
+| Authenticator | [curityio/username-password-authenticator](https://github.com/curityio/username-password-authenticator) |
+| Backchannel Authenticator | [Curity-PS/vipps-backchannel](https://github.com/Curity-PS/vipps-backchannel) |
+| Authentication Action | [curityio/time-authentication-action](https://github.com/curityio/time-authentication-action) |
+| Token Procedure | [curityio/external-idp-token-exchange](https://github.com/curityio/external-idp-token-exchange) |
+
 ## Source of Truth Priority
 
 When generating code, follow this priority:
@@ -103,7 +115,7 @@ When generating code, follow this priority:
 1. **Current repository** (existing implementations, tests, build files)
 2. **Curity Plugin SDK Javadocs** (exact interfaces, types, signatures)
 3. **Reference docs** (`agent-docs/*.md`) - patterns, skeletons, recipes
-4. **Public example plugins** (pattern/reference only; does not assume API details)
+4. **Public example plugins on GitHub** (pattern/reference only; does not assume API details)
 
 ## Default Workflow
 

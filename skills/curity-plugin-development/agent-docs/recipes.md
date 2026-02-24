@@ -2,6 +2,15 @@
 
 This document provides **end-to-end working examples** for common plugin implementation scenarios. These are copy-paste ready patterns that show complete integration across descriptor, configuration, handlers, and tests.
 
+### Reference Plugins on GitHub
+
+| Plugin Type | Repository |
+|-------------|------------|
+| Authenticator | [curityio/username-password-authenticator](https://github.com/curityio/username-password-authenticator) |
+| Backchannel Authenticator | [Curity-PS/vipps-backchannel](https://github.com/Curity-PS/vipps-backchannel) |
+| Authentication Action | [curityio/time-authentication-action](https://github.com/curityio/time-authentication-action) |
+| Token Procedure | [curityio/external-idp-token-exchange](https://github.com/curityio/external-idp-token-exchange) |
+
 ---
 
 ## Basic Authenticators
@@ -783,6 +792,323 @@ class UsernamePasswordRequestHandlerSpec extends Specification {
 
 ---
 
+## Event Listeners
+
+### Recipe 7: All-Events Logger
+
+A minimal event listener that logs all events. This is the simplest event listener plugin.
+
+**Descriptor** (`AllEventsEventListenerDescriptor.java`):
+```java
+package io.curity.identityserver.plugins.eventlistener;
+
+import se.curity.identityserver.sdk.event.EventListener;
+import se.curity.identityserver.sdk.event.EventListenerCollection;
+import se.curity.identityserver.sdk.plugin.descriptor.EventListenerPluginDescriptor;
+
+import java.util.Collections;
+import java.util.Set;
+
+public final class AllEventsEventListenerDescriptor
+        implements EventListenerPluginDescriptor<AllEventsEventListenerConfig>
+{
+    @Override
+    public Class<? extends EventListenerCollection> getEventListenerCollection()
+    {
+        return AllEventsListenerCollection.class;
+    }
+
+    @Override
+    public String getPluginImplementationType()
+    {
+        return "all-events";
+    }
+
+    @Override
+    public Class<? extends AllEventsEventListenerConfig> getConfigurationType()
+    {
+        return AllEventsEventListenerConfig.class;
+    }
+
+    public static final class AllEventsListenerCollection implements EventListenerCollection
+    {
+        private final Set<EventListener<?>> _listeners;
+
+        public AllEventsListenerCollection(AllEventsEventListenerConfig configuration)
+        {
+            _listeners = Collections.singleton(new AllEventsEventListener(configuration));
+        }
+
+        @Override
+        public Set<? extends EventListener<?>> getListeners()
+        {
+            return Collections.unmodifiableSet(_listeners);
+        }
+    }
+}
+```
+
+**Configuration** (`AllEventsEventListenerConfig.java`):
+```java
+package io.curity.identityserver.plugins.eventlistener;
+
+import se.curity.identityserver.sdk.config.Configuration;
+
+public interface AllEventsEventListenerConfig extends Configuration
+{
+    // Empty — no additional services or config needed for basic logging
+}
+```
+
+**Event Listener** (`AllEventsEventListener.java`):
+```java
+package io.curity.identityserver.plugins.eventlistener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import se.curity.identityserver.sdk.data.events.Event;
+import se.curity.identityserver.sdk.event.EventListener;
+
+public final class AllEventsEventListener implements EventListener<Event>
+{
+    private static final Logger _logger = LoggerFactory.getLogger(AllEventsEventListener.class);
+    private final AllEventsEventListenerConfig _configuration;
+
+    public AllEventsEventListener(AllEventsEventListenerConfig configuration)
+    {
+        _configuration = configuration;
+    }
+
+    @Override
+    public Class<Event> getEventType()
+    {
+        return Event.class;  // Listen to ALL event types
+    }
+
+    @Override
+    public void handle(Event event)
+    {
+        _logger.info("Event received: {}", event.asMap());
+    }
+}
+```
+
+**Service Descriptor** (`src/main/resources/META-INF/services/se.curity.identityserver.sdk.plugin.descriptor.EventListenerPluginDescriptor`):
+```
+io.curity.identityserver.plugins.eventlistener.AllEventsEventListenerDescriptor
+```
+
+**Key Points**:
+- `EventListener<Event>` with `getEventType()` returning `Event.class` receives all events
+- Use a specific event subtype (e.g., `IssuedAccessTokenOAuthEvent`) to filter
+- Event listeners must be thread-safe
+- The `EventListenerCollection` inner class instantiates all listeners from config
+
+---
+
+## Token Procedures
+
+### Recipe 8: External IdP Token Exchange
+
+A token exchange procedure that validates an external JWT, then issues an internal access token. This demonstrates the complete token exchange pattern per RFC 8693.
+
+**Descriptor** (`ExternalIdpTokenProcedureDescriptor.java`):
+```java
+package io.curity.identityserver.plugins.tokenexchange.descriptor;
+
+import io.curity.identityserver.plugins.tokenexchange.ExternalIdpTokenExchangeProcedure;
+import io.curity.identityserver.plugins.tokenexchange.config.ExternalIdpTokenProcedureConfig;
+import se.curity.identityserver.sdk.plugin.descriptor.TokenProcedurePluginDescriptor;
+import se.curity.identityserver.sdk.procedure.token.OAuthTokenExchangeTokenProcedure;
+
+public final class ExternalIdpTokenProcedureDescriptor
+        implements TokenProcedurePluginDescriptor<ExternalIdpTokenProcedureConfig>
+{
+    @Override
+    public Class<? extends OAuthTokenExchangeTokenProcedure> getOAuthTokenEndpointOAuthTokenExchangeTokenProcedure()
+    {
+        return ExternalIdpTokenExchangeProcedure.class;
+    }
+
+    @Override
+    public String getPluginImplementationType()
+    {
+        return "external-idp-token-exchange";
+    }
+
+    @Override
+    public Class<? extends ExternalIdpTokenProcedureConfig> getConfigurationType()
+    {
+        return ExternalIdpTokenProcedureConfig.class;
+    }
+}
+```
+
+**Configuration** (`ExternalIdpTokenProcedureConfig.java`):
+```java
+package io.curity.identityserver.plugins.tokenexchange.config;
+
+import se.curity.identityserver.sdk.config.Configuration;
+import se.curity.identityserver.sdk.config.annotation.DefaultLong;
+import se.curity.identityserver.sdk.config.annotation.DefaultService;
+import se.curity.identityserver.sdk.config.annotation.DefaultString;
+import se.curity.identityserver.sdk.config.annotation.Description;
+import se.curity.identityserver.sdk.service.ExceptionFactory;
+import se.curity.identityserver.sdk.service.HttpClient;
+import se.curity.identityserver.sdk.service.issuer.DefaultJwtAccessTokenIssuerProvider;
+
+public interface ExternalIdpTokenProcedureConfig extends Configuration
+{
+    ExceptionFactory getExceptionFactory();
+
+    @DefaultService
+    DefaultJwtAccessTokenIssuerProvider getJwtAccessTokenIssuerProvider();
+
+    @DefaultString("https://example.idp.com/.well-known/openid-configuration")
+    @Description("External IdP OIDC discovery URL for JWKS resolution")
+    String getMetadataURL();
+
+    @Description("Clock skew tolerance in seconds")
+    @DefaultLong(2)
+    Long getClockSkew();
+
+    HttpClient getHttpClient();
+}
+```
+
+**Token Exchange Procedure** (`ExternalIdpTokenExchangeProcedure.java`):
+```java
+package io.curity.identityserver.plugins.tokenexchange;
+
+import io.curity.identityserver.plugins.tokenexchange.config.ExternalIdpTokenProcedureConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import se.curity.identityserver.sdk.Nullable;
+import se.curity.identityserver.sdk.attribute.Attribute;
+import se.curity.identityserver.sdk.attribute.ContextAttributes;
+import se.curity.identityserver.sdk.attribute.SubjectAttributes;
+import se.curity.identityserver.sdk.attribute.token.AccessTokenAttributes;
+import se.curity.identityserver.sdk.data.tokens.TokenIssuerException;
+import se.curity.identityserver.sdk.errors.ErrorCode;
+import se.curity.identityserver.sdk.procedure.token.OAuthTokenExchangeTokenProcedure;
+import se.curity.identityserver.sdk.procedure.token.context.OAuthTokenExchangeTokenProcedurePluginContext;
+import se.curity.identityserver.sdk.procedure.token.context.OAuthTokenExchangeUnInitializedTokenProcedurePluginContext;
+import se.curity.identityserver.sdk.service.issuer.AccessTokenIssuer;
+import se.curity.identityserver.sdk.web.ResponseModel;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+public final class ExternalIdpTokenExchangeProcedure implements OAuthTokenExchangeTokenProcedure
+{
+    private static final Logger _logger = LoggerFactory.getLogger(ExternalIdpTokenExchangeProcedure.class);
+    private final ExternalIdpTokenProcedureConfig _configuration;
+
+    public ExternalIdpTokenExchangeProcedure(ExternalIdpTokenProcedureConfig configuration)
+    {
+        _configuration = configuration;
+    }
+
+    @Override
+    public ResponseModel run(OAuthTokenExchangeUnInitializedTokenProcedurePluginContext context)
+    {
+        // 1. Extract the subject token from the request
+        String presentedToken = context.getSubjectTokenValue();
+        if (presentedToken == null)
+        {
+            _logger.debug("No subject token in request");
+            throw _configuration.getExceptionFactory()
+                    .badRequestException(ErrorCode.TOKEN_ISSUANCE_ERROR, "Invalid subject token");
+        }
+
+        // 2. Validate the external token (implement JWT validation with JWKS)
+        String subject = validateAndExtractSubject(presentedToken);
+
+        // 3. Determine scopes and audiences from the client configuration
+        Set<String> audiences = context.getClient().getAudiences();
+        Set<String> scopes = context.getClient().getScopeNames();
+
+        // 4. Initialize the token context
+        OAuthTokenExchangeTokenProcedurePluginContext fullContext = context.getInitializedContext(
+                SubjectAttributes.of(subject),
+                ContextAttributes.empty(),
+                audiences,
+                scopes
+        );
+
+        // 5. Build access token data with optional custom claims
+        var tokenData = fullContext.getDefaultAccessTokenData()
+                .with(Attribute.of("user_id", subject));
+
+        var delegation = fullContext.getDefaultDelegationData();
+
+        // 6. Issue the token
+        try
+        {
+            @Nullable AccessTokenIssuer issuer = _configuration.getJwtAccessTokenIssuerProvider()
+                    .getDefaultJwtAccessTokenIssuer();
+            if (issuer == null)
+            {
+                throw _configuration.getExceptionFactory()
+                        .badRequestException(ErrorCode.TOKEN_ISSUANCE_ERROR, "JWT not enabled");
+            }
+
+            @Nullable String issuedToken = issuer.issue(
+                    AccessTokenAttributes.of(tokenData),
+                    fullContext.issueDelegation(delegation)
+            );
+
+            if (issuedToken == null)
+            {
+                throw _configuration.getExceptionFactory()
+                        .badRequestException(ErrorCode.TOKEN_ISSUANCE_ERROR, "Token issuance failed");
+            }
+
+            // 7. Build the OAuth token response
+            var responseData = new HashMap<String, Object>();
+            responseData.put("access_token", issuedToken);
+            responseData.put("token_type", "bearer");
+            responseData.put("scope", tokenData.get("scope").getValue());
+            responseData.put("expires_in",
+                    Long.parseLong(tokenData.get("exp").getValue().toString()) - Instant.now().getEpochSecond());
+            responseData.put("issued_token_type", "urn:ietf:params:oauth:token-type:access_token");
+
+            return ResponseModel.mapResponseModel(responseData);
+        }
+        catch (TokenIssuerException e)
+        {
+            return ResponseModel.problemResponseModel("token_issuer_exception", "Could not issue tokens");
+        }
+    }
+
+    private String validateAndExtractSubject(String token)
+    {
+        // TODO: Implement JWT validation
+        // 1. Fetch OIDC metadata from config.getMetadataURL()
+        // 2. Resolve JWKS endpoint
+        // 3. Verify JWT signature, expiration, audience, issuer
+        // 4. Extract and return the "sub" claim
+        throw new UnsupportedOperationException("Implement external token validation");
+    }
+}
+```
+
+**Key Points**:
+- Descriptor overrides only `getOAuthTokenEndpointOAuthTokenExchangeTokenProcedure()` — other flows use defaults
+- Uses `@DefaultService` on `DefaultJwtAccessTokenIssuerProvider` to use the server's default JWT issuer
+- The `UnInitializedContext` → `getInitializedContext()` → `getDefaultAccessTokenData()` flow is the standard pattern
+- Custom claims added via `.with(Attribute.of("name", value))`
+- JWT validation libraries (jose4j, nimbus) must be bundled as runtime dependencies
+
+**Service Descriptor** (`src/main/resources/META-INF/services/se.curity.identityserver.sdk.plugin.descriptor.TokenProcedurePluginDescriptor`):
+```
+io.curity.identityserver.plugins.tokenexchange.descriptor.ExternalIdpTokenProcedureDescriptor
+```
+
+---
+
 ## Quick Reference
 
 **Need to:**
@@ -792,9 +1118,14 @@ class UsernamePasswordRequestHandlerSpec extends Specification {
 - Call external API? → Recipe 4 (External Service Integration)
 - Deny authentication conditionally? → Recipe 6 (Conditional Denial Action)
 - Write tests? → Recipe 5 (Basic Handler Test)
+- Listen to server events? → Recipe 7 (All-Events Logger)
+- Token exchange with external IdP? → Recipe 8 (External IdP Token Exchange)
 
 **See also:**
 - API reference → `sdk-services.md`
 - Request handler lifecycle → `request-handlers.md`
 - Template syntax → `templating.md`
 - Test framework → `testing.md`
+- Event listener guide → `plugin-type-event-listener.md`
+- Token procedure guide → `plugin-type-token-procedure.md`
+- Configuration system → `configuration.md`

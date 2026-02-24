@@ -2,6 +2,8 @@
 
 Use this document when generating code for **authenticator plugins**.
 
+**Reference implementation**: [curityio/username-password-authenticator](https://github.com/curityio/username-password-authenticator) — a full-featured authenticator with login, registration, forgot-password, and account activation flows.
+
 ## 1. When to Use
 
 Implement an authenticator plugin when:
