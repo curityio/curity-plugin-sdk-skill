@@ -47,29 +47,22 @@ Once installed, Claude Code will automatically use this skill when working on Cu
 
 ### GitHub Copilot
 
-GitHub Copilot automatically loads instructions from `.github/copilot-instructions.md` in your repository.
+GitHub Copilot can use the skill documentation as custom instructions.
 
-**Option 1: Add to your plugin project (Recommended)**
+**Option 1: Copy as project instructions (Recommended)**
 
-Copy the instructions file to your Curity plugin project:
-
-```bash
-# In your plugin project directory
-mkdir -p .github
-curl -o .github/copilot-instructions.md https://raw.githubusercontent.com/curityio/coding-agent-instructions/main/.github/copilot-instructions.md
-```
-
-**Option 2: Install as a skill in ~/.copilot/skills**
-
-Clone the repository and symlink the skill folder:
+Clone the repo and copy `SKILL.md` plus the `agent-docs/` directory into your plugin project's `.github/` directory:
 
 ```bash
-git clone https://github.com/curityio/coding-agent-instructions.git ~/src/coding-agent-instructions
-mkdir -p ~/.copilot/skills
-ln -s ~/src/coding-agent-instructions/skills/curity-plugin-sdk ~/.copilot/skills/curity-plugin-sdk
+git clone https://github.com/curityio/coding-agent-instructions.git /tmp/coding-agent-instructions
+mkdir -p .github/instructions
+cp /tmp/coding-agent-instructions/skills/curity-plugin-sdk/SKILL.md .github/instructions/curity-plugin-sdk.md
+cp -r /tmp/coding-agent-instructions/skills/curity-plugin-sdk/agent-docs .github/instructions/agent-docs
 ```
 
-**Option 3: Use as a Git submodule**
+Copilot in VS Code and JetBrains IDEs automatically picks up files from `.github/instructions/`.
+
+**Option 2: Use as a Git submodule**
 
 Add as a submodule to your plugin project:
 
@@ -77,25 +70,21 @@ Add as a submodule to your plugin project:
 git submodule add https://github.com/curityio/coding-agent-instructions.git docs/curity-agent-docs
 ```
 
-Then reference the instructions in your own `.github/copilot-instructions.md`:
+Then create a `.github/copilot-instructions.md` that points to it:
 
 ```markdown
-See [Curity Plugin SDK Guide](../docs/curity-agent-docs/skills/curity-plugin-sdk/INSTRUCTIONS.md) for detailed instructions.
+See [Curity Plugin SDK Guide](../docs/curity-agent-docs/skills/curity-plugin-sdk/SKILL.md) for plugin development instructions.
 ```
 
-**VS Code Settings (Optional)**
-
-You can also configure Copilot to use custom instructions globally in VS Code:
+**Option 3: VS Code global instructions**
 
 1. Open VS Code Settings (`Cmd+,` or `Ctrl+,`)
 2. Search for "Copilot Instructions"
-3. Add the path to `skills/curity-plugin-sdk/INSTRUCTIONS.md` or paste its contents
-
-The `.github/copilot-instructions.md` file is automatically loaded with high priority by Copilot in supported IDEs (VS Code, JetBrains).
+3. Add the path to `skills/curity-plugin-sdk/SKILL.md` or paste its contents
 
 ### Other Agents
 
-Reference the `skills/curity-plugin-sdk/INSTRUCTIONS.md` file or `skills/curity-plugin-sdk/agent-docs/` directory in your agent's configuration.
+Point your agent at the `skills/curity-plugin-sdk/SKILL.md` file and the `skills/curity-plugin-sdk/agent-docs/` directory.
 
 ## Structure
 
@@ -103,18 +92,16 @@ Reference the `skills/curity-plugin-sdk/INSTRUCTIONS.md` file or `skills/curity-
 coding-agent-instructions/
 ├── .claude-plugin/
 │   └── plugin.json                      # Plugin manifest for Claude Code
-├── .github/
-│   └── copilot-instructions.md          # Short version for GitHub Copilot
 ├── skills/
 │   └── curity-plugin-sdk/              # Main skill directory
-│       ├── SKILL.md                     # Skill definition with frontmatter
-│       ├── INSTRUCTIONS.md              # Detailed coding guidelines
+│       ├── SKILL.md                     # Skill definition and agent instructions
 │       └── agent-docs/                  # Topic-specific references
 │           ├── plugin-system.md         # Plugin system concepts & lifecycle
 │           ├── plugin-types.md          # Overview of available plugin types
 │           ├── plugin-type-*.md         # Details for specific plugin types
 │           ├── request-handlers.md      # Multi-step flow implementation
 │           ├── sdk-services.md          # SDK services (credentials, SMS, etc.)
+│           ├── configuration.md         # Configuration annotations & nesting
 │           ├── templating.md            # Velocity templating system
 │           ├── attributes.md            # Attributes and authentication results
 │           ├── testing.md               # Unit tests with Spock Framework

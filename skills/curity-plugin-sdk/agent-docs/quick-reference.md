@@ -216,7 +216,7 @@ All examples in `recipes.md`:
 
 | Document | Primary Purpose | When to Use |
 |----------|----------------|-------------|
-| `INSTRUCTIONS.md` | Agent instructions | Start here for overview |
+| `SKILL.md` | Skill definition & instructions | Start here for overview |
 | `plugin-system.md` | System fundamentals | Understand plugin lifecycle |
 | `plugin-types.md` | Type selector | Choose plugin type |
 | `plugin-type-authenticator.md` | Authenticator guide | Implement authenticator |

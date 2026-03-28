@@ -46,9 +46,6 @@ When working on Curity plugins, consult these supporting files:
 - [quick-reference.md](agent-docs/quick-reference.md) - Task-oriented index
 - [recipes.md](agent-docs/recipes.md) - Complete working examples
 
-### Detailed Instructions
-- [INSTRUCTIONS.md](INSTRUCTIONS.md) - Comprehensive coding guidelines and workflow
-
 ## Build System Quick Reference
 
 - Use **Gradle with Groovy DSL** (`build.gradle`)
@@ -86,6 +83,13 @@ When working on Curity plugins, consult these supporting files:
 - INFO: Important events
 - WARN: Recoverable errors
 - ERROR: Critical failures
+
+### Style & Structure
+- Follow the host project's language and style (Java, Kotlin, etc.)
+- **Use imports rather than fully qualified class names** for cleaner, more readable code
+- Prefer **small, focused methods** with clear responsibilities
+- Use Curity's logging and error mechanisms instead of ad-hoc prints or generic exceptions
+- Add Javadoc-style documentation for public classes, plugin entry points, and complex logic
 
 ### Code Quality
 - Immutable request models
