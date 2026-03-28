@@ -118,11 +118,25 @@ throw config.getExceptionFactory().internalServerException(
 
 See `sdk-services.md` for complete documentation on `ExceptionFactory`, `ErrorCode`, and logging.
 
-## 5. Deployment Considerations
+## 6. Plugin Icon
+
+All plugin types support a custom icon displayed in the Curity admin UI. Place an SVG file at:
+
+```
+src/main/resources/icons/<plugin-type-name>.svg
+```
+
+Where `<plugin-type-name>` matches the string returned by `getPluginImplementationType()` in the descriptor. For example, a plugin with type `"username-password"` would use:
+
+```
+src/main/resources/icons/username-password.svg
+```
+
+## 7. Deployment Considerations
 
 - Plugins are packaged as a JAR file and deployed to the Curity Identity Server
 - Create a subfolder in `$IDSVR_HOME/usr/share/plugins/<plugin-name>/`
 - Place the plugin JAR and any `implementation` dependency JARs in this folder
 - The plugin JAR contains only the plugin code
-- Server-provided dependencies (Curity SDK 10.6.1, SLF4J 2.0.12, Kotlin stdlib 2.2.0) should be marked as `compileOnly` and are not deployed
+- Server-provided dependencies (Curity SDK 11.1.0, SLF4J 2.0.12, Kotlin stdlib 2.2.0) should be marked as `compileOnly` and are not deployed
 - Only `implementation` dependencies that are not provided by the server need to be deployed as separate JARs 

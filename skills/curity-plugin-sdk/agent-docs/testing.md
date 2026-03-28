@@ -16,9 +16,9 @@ plugins {
 
 dependencies {
     // Test dependencies
-    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+    testImplementation 'org.spockframework:spock-core:2.4-M4-groovy-4.0'
     testImplementation 'org.apache.groovy:groovy-all:4.0.15'
-    testImplementation 'se.curity.identityserver:identityserver.sdk:10.6.1'
+    testImplementation 'se.curity.identityserver:identityserver.sdk:11.1.0'
     testImplementation 'org.slf4j:slf4j-api:2.0.12'
     testImplementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.0'
     testImplementation 'jakarta.validation:jakarta.validation-api:3.0.0'
@@ -552,6 +552,6 @@ class PasswordHandlerSpec extends Specification {
 
 ## Additional Resources
 
-- [Spock Framework Documentation](https://spockframework.org/spock/docs/2.3/all_in_one.html)
+- [Spock Framework Documentation](https://spockframework.org/spock/docs/2.4/all_in_one.html)
 - [Groovy Documentation](https://groovy-lang.org/documentation.html)
 - Curity SDK JavaDoc (included with SDK)

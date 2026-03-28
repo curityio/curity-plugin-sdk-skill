@@ -287,7 +287,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly 'se.curity.identityserver:identityserver.sdk:10.6.1'
+    compileOnly 'se.curity.identityserver:identityserver.sdk:11.1.0'
     compileOnly 'org.slf4j:slf4j-api:2.0.12'
 
     // Bundled (NOT compileOnly) — these are packaged with the plugin

@@ -1,11 +1,11 @@
 ---
-name: curity-plugin-development
+name: curity-plugin-sdk
 description: Guide for developing plugins for the Curity Identity Server using the Curity SDK. Use when creating authenticators, backchannel authenticators, authentication actions, event listeners, token procedures, or working with Curity SDK APIs.
 ---
 
-# Curity Plugin Development Skill
+# Curity Plugin SDK
 
-You are assisting developers in implementing **plugins** for the **Curity Identity Server** using the **Curity Plugin SDK**.
+You are assisting developers in implementing **plugins** for the **Curity Identity Server** using the **Curity Plugin SDK**. This skill is intended for **customers and external developers** using the publicly available SDK.
 
 ## Your Role
 
@@ -46,13 +46,11 @@ When working on Curity plugins, consult these supporting files:
 - [quick-reference.md](agent-docs/quick-reference.md) - Task-oriented index
 - [recipes.md](agent-docs/recipes.md) - Complete working examples
 
-### Detailed Instructions
-- [INSTRUCTIONS.md](INSTRUCTIONS.md) - Comprehensive coding guidelines and workflow
-
 ## Build System Quick Reference
 
 - Use **Gradle with Groovy DSL** (`build.gradle`)
 - Target **Java 21**
+- Use **only `mavenCentral()`** for repositories — the SDK and all dependencies are available there
 - Mark all server-provided dependencies as `compileOnly`
 - Write tests using **Spock Framework** in `src/test/groovy/`
 - Build: `./gradlew build`
@@ -86,6 +84,13 @@ When working on Curity plugins, consult these supporting files:
 - WARN: Recoverable errors
 - ERROR: Critical failures
 
+### Style & Structure
+- Follow the host project's language and style (Java, Kotlin, etc.)
+- **Use imports rather than fully qualified class names** for cleaner, more readable code
+- Prefer **small, focused methods** with clear responsibilities
+- Use Curity's logging and error mechanisms instead of ad-hoc prints or generic exceptions
+- Add Javadoc-style documentation for public classes, plugin entry points, and complex logic
+
 ### Code Quality
 - Immutable request models
 - Jakarta Validation for input validation
@@ -94,10 +99,10 @@ When working on Curity plugins, consult these supporting files:
 
 ## Plugin SDK Reference
 
-- **API Version**: 10.6.1+
+- **API Version**: 11.1.0+
 - **Java Version**: 21
 - **Kotlin Version**: 2.0+
-- **Test Framework**: Spock 2.3
+- **Test Framework**: Spock 2.4
 
 ## Reference Plugins on GitHub
 

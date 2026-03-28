@@ -1,10 +1,8 @@
-# Curity Identity Server – Coding Agent Instructions for Plugin Development
+# Curity Identity Server – Plugin SDK Skill for Coding Agents
 
-This repository contains **machine-focused documentation** intended for use by coding agents
-such as Claude Code, GitHub Copilot, Gemini, and other AI assistants when developing plugins for the
-**Curity Identity Server**.
+This repository contains a **skill** for coding agents (Claude Code, GitHub Copilot, Gemini, and others) that provides guidance for developing plugins for the **Curity Identity Server** using the publicly available SDK.
 
-The goal is to give agents:
+The skill gives agents:
 
 - A consistent mental model of how the **plugin system** works
 - Clear rules for how to implement **different plugin types**
@@ -42,48 +40,29 @@ Clone the repository and symlink the skill folder:
 ```bash
 git clone https://github.com/curityio/coding-agent-instructions.git ~/src/coding-agent-instructions
 mkdir -p ~/.claude/skills
-ln -s ~/src/coding-agent-instructions/skills/curity-plugin-development ~/.claude/skills/curity-plugin-development
+ln -s ~/src/coding-agent-instructions/skills/curity-plugin-sdk ~/.claude/skills/curity-plugin-sdk
 ```
 
-Once installed, Claude Code will automatically use this skill when working on Curity plugin development tasks, or you can invoke it directly with `/curity-plugin-development`.
+Once installed, Claude Code will automatically use this skill when working on Curity plugin development tasks, or you can invoke it directly with `/curity-plugin-sdk`.
 
 ### GitHub Copilot
 
-GitHub Copilot automatically loads instructions from `.github/copilot-instructions.md` in your repository.
+GitHub Copilot can use the skill documentation as custom instructions.
 
-**Option 1: Install as a skill in ~/.copilot/skills**
+**Option 1: Copy as project instructions (Recommended)**
 
-Clone the repository and symlink the skill folder:
-
-```bash
-git clone https://github.com/curityio/coding-agent-instructions.git ~/src/coding-agent-instructions
-mkdir -p ~/.copilot/skills
-ln -s ~/src/coding-agent-instructions/skills/curity-plugin-development ~/.copilot/skills/curity-plugin-development
-```
-
-Once installed, GitHub Copilot will automatically use this skill when working on Curity plugin development tasks.
-
-**Option 2: Add to your plugin project (Recommended for project-specific setup)**
-
-Copy the instructions file to your Curity plugin project:
+Clone the repo and copy `SKILL.md` plus the `agent-docs/` directory into your plugin project's `.github/` directory:
 
 ```bash
-# In your plugin project directory
-mkdir -p .github
-curl -o .github/copilot-instructions.md https://raw.githubusercontent.com/curityio/coding-agent-instructions/main/.github/copilot-instructions.md
+git clone https://github.com/curityio/coding-agent-instructions.git /tmp/coding-agent-instructions
+mkdir -p .github/instructions
+cp /tmp/coding-agent-instructions/skills/curity-plugin-sdk/SKILL.md .github/instructions/curity-plugin-sdk.md
+cp -r /tmp/coding-agent-instructions/skills/curity-plugin-sdk/agent-docs .github/instructions/agent-docs
 ```
 
-**Option 3: Clone and work inside this repository**
+Copilot in VS Code and JetBrains IDEs automatically picks up files from `.github/instructions/`.
 
-Clone this repository and create your plugin as a subdirectory:
-
-```bash
-git clone https://github.com/curityio/coding-agent-instructions.git
-cd coding-agent-instructions
-# Create your plugin in a subdirectory (add to .gitignore)
-```
-
-**Option 4: Use as a Git submodule**
+**Option 2: Use as a Git submodule**
 
 Add as a submodule to your plugin project:
 
@@ -91,44 +70,38 @@ Add as a submodule to your plugin project:
 git submodule add https://github.com/curityio/coding-agent-instructions.git docs/curity-agent-docs
 ```
 
-Then reference the instructions in your own `.github/copilot-instructions.md`:
+Then create a `.github/copilot-instructions.md` that points to it:
 
 ```markdown
-See [Curity Plugin Development Guide](../docs/curity-agent-docs/skills/curity-plugin-development/INSTRUCTIONS.md) for detailed instructions.
+See [Curity Plugin SDK Guide](../docs/curity-agent-docs/skills/curity-plugin-sdk/SKILL.md) for plugin development instructions.
 ```
 
-**VS Code Settings (Optional)**
-
-You can also configure Copilot to use custom instructions globally in VS Code:
+**Option 3: VS Code global instructions**
 
 1. Open VS Code Settings (`Cmd+,` or `Ctrl+,`)
 2. Search for "Copilot Instructions"
-3. Add the path to `skills/curity-plugin-development/INSTRUCTIONS.md` or paste its contents
-
-The `.github/copilot-instructions.md` file is automatically loaded with high priority by Copilot in supported IDEs (VS Code, JetBrains).
+3. Add the path to `skills/curity-plugin-sdk/SKILL.md` or paste its contents
 
 ### Other Agents
 
-Reference the `skills/curity-plugin-development/INSTRUCTIONS.md` file or `skills/curity-plugin-development/agent-docs/` directory in your agent's configuration.
+Point your agent at the `skills/curity-plugin-sdk/SKILL.md` file and the `skills/curity-plugin-sdk/agent-docs/` directory.
 
 ## Structure
 
 ```
-curity-plugin-development/
+coding-agent-instructions/
 ├── .claude-plugin/
 │   └── plugin.json                      # Plugin manifest for Claude Code
-├── .github/
-│   └── copilot-instructions.md          # Short version for GitHub Copilot
 ├── skills/
-│   └── curity-plugin-development/       # Main skill directory
-│       ├── SKILL.md                     # Skill definition with frontmatter
-│       ├── INSTRUCTIONS.md              # Detailed coding guidelines
+│   └── curity-plugin-sdk/              # Main skill directory
+│       ├── SKILL.md                     # Skill definition and agent instructions
 │       └── agent-docs/                  # Topic-specific references
 │           ├── plugin-system.md         # Plugin system concepts & lifecycle
 │           ├── plugin-types.md          # Overview of available plugin types
 │           ├── plugin-type-*.md         # Details for specific plugin types
 │           ├── request-handlers.md      # Multi-step flow implementation
 │           ├── sdk-services.md          # SDK services (credentials, SMS, etc.)
+│           ├── configuration.md         # Configuration annotations & nesting
 │           ├── templating.md            # Velocity templating system
 │           ├── attributes.md            # Attributes and authentication results
 │           ├── testing.md               # Unit tests with Spock Framework
@@ -170,14 +143,6 @@ Create Spock tests for the authentication handler
 ```
 Add Gradle tasks for deploying to local Curity server
 ```
-
-## How to Use in Other Repositories
-
-When creating a new Curity plugin project:
-
-1. Clone this repository
-2. Create a new plugin using a prompt, or clone an existing plugin to a subfolder to this repo. These can not be committed.
-3. If you create a new plugin, initialize a git repository in the created subfolder
 
 ## License
 

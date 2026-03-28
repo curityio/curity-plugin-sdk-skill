@@ -178,6 +178,7 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Request Handler | `src/main/kotlin/.../` | `request-handlers.md` |
 | Request Model | `src/main/kotlin/.../` | `request-handlers.md` → Validation |
 | Templates | `src/main/resources/templates/authenticator/<plugin-name>/` | `templating.md` → Template path |
+| Plugin Icon | `src/main/resources/icons/<plugin-type-name>.svg` | `plugin-system.md` → Section 6 |
 | Tests | `src/test/groovy/.../` | `testing.md` |
 | Build Config | `build.gradle` | `build-and-deployment.md` |
 
@@ -215,7 +216,7 @@ All examples in `recipes.md`:
 
 | Document | Primary Purpose | When to Use |
 |----------|----------------|-------------|
-| `INSTRUCTIONS.md` | Agent instructions | Start here for overview |
+| `SKILL.md` | Skill definition & instructions | Start here for overview |
 | `plugin-system.md` | System fundamentals | Understand plugin lifecycle |
 | `plugin-types.md` | Type selector | Choose plugin type |
 | `plugin-type-authenticator.md` | Authenticator guide | Implement authenticator |

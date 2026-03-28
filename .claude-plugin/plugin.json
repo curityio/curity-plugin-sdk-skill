@@ -1,7 +1,7 @@
 {
-  "name": "curity-plugin-development",
+  "name": "curity-plugin-sdk",
   "description": "Guide for developing plugins for the Curity Identity Server using the Curity SDK",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Daniel"
   }
