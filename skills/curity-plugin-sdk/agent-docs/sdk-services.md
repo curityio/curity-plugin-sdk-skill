@@ -917,7 +917,7 @@ All plugins should mark these as `compileOnly` in Gradle:
 ```groovy
 dependencies {
     // Curity Identity Server SDK (provided at runtime)
-    compileOnly 'se.curity.identityserver:identityserver.sdk:10.6.1'
+    compileOnly 'se.curity.identityserver:identityserver.sdk:11.1.0'
     
     // SLF4J API (provided at runtime)
     compileOnly 'org.slf4j:slf4j-api:2.0.12'

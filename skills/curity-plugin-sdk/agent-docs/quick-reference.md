@@ -178,6 +178,7 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Request Handler | `src/main/kotlin/.../` | `request-handlers.md` |
 | Request Model | `src/main/kotlin/.../` | `request-handlers.md` → Validation |
 | Templates | `src/main/resources/templates/authenticator/<plugin-name>/` | `templating.md` → Template path |
+| Plugin Icon | `src/main/resources/icons/<plugin-type-name>.svg` | `plugin-system.md` → Section 6 |
 | Tests | `src/test/groovy/.../` | `testing.md` |
 | Build Config | `build.gradle` | `build-and-deployment.md` |
 
