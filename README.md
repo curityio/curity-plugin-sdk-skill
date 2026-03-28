@@ -23,13 +23,13 @@ The skill gives agents:
 Install using the GitHub repository URL:
 
 ```bash
-claude /plugin install https://github.com/curityio/coding-agent-instructions
+claude /plugin install https://github.com/curityio/curity-plugin-sdk-skill
 ```
 
 Or clone locally and run with the plugin flag:
 
 ```bash
-git clone https://github.com/curityio/coding-agent-instructions.git
+git clone https://github.com/curityio/curity-plugin-sdk-skill.git
 claude --plugin-dir ./coding-agent-instructions
 ```
 
@@ -38,9 +38,9 @@ claude --plugin-dir ./coding-agent-instructions
 Clone the repository and symlink the skill folder:
 
 ```bash
-git clone https://github.com/curityio/coding-agent-instructions.git ~/src/coding-agent-instructions
+git clone https://github.com/curityio/ccurity-plugin-sdk-skill.git
 mkdir -p ~/.claude/skills
-ln -s ~/src/coding-agent-instructions/skills/curity-plugin-sdk ~/.claude/skills/curity-plugin-sdk
+ln -s curity-plugin-sdk-skill/skills/curity-plugin-sdk ~/.claude/skills/curity-plugin-sdk
 ```
 
 Once installed, Claude Code will automatically use this skill when working on Curity plugin development tasks, or you can invoke it directly with `/curity-plugin-sdk`.
