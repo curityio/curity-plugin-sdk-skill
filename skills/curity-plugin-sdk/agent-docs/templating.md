@@ -195,7 +195,7 @@ Curity provides CSS classes for consistent styling of forms and UI elements. Use
         <h1 class="mt0 center">#message("${_templatePrefix}.heading")</h1>
         
         <div class="form-field">
-            <label for="username">#message("${_templatePrefix}.username.label")</label>
+            <label class="flex flex-gap-1 flex-center" for="username">#message("${_templatePrefix}.username.label")</label>
             <input 
                 type="text" 
                 id="username" 
