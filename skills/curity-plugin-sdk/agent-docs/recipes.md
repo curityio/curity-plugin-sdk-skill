@@ -1079,7 +1079,8 @@ public final class ExternalIdpTokenExchangeProcedure implements OAuthTokenExchan
         }
         catch (TokenIssuerException e)
         {
-            return ResponseModel.problemResponseModel("token_issuer_exception", "Could not issue tokens");
+            throw _configuration.getExceptionFactory()
+                    .badRequestException(ErrorCode.TOKEN_ISSUANCE_ERROR, "Could not issue tokens");
         }
     }
 

@@ -70,6 +70,7 @@ When working on Curity plugins, consult these supporting files:
 - Use ExceptionFactory for all exceptions
 - Let SDK exceptions propagate naturally
 - Return proper error results for backchannel flows
+- In token procedures, **throw** from `ExceptionFactory` — never return an error as a `ResponseModel`. Whatever `run` returns is treated as the successful token response
 
 ### Session Management
 - Store minimal state in sessions
