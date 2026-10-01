@@ -876,6 +876,46 @@ if (client != null) {
 }
 ```
 
+### TokenServiceOAuthClient
+
+**Package**: `se.curity.identityserver.sdk.service.oauth.TokenServiceOAuthClient`
+
+**Since**: 11.4.0. **Application plugins only.**
+
+**Purpose**: Run an OAuth authorization code flow against an OAuth client on the OAuth
+profile linked to the plugin's profile, without re-declaring endpoints, secrets or keys.
+Use this instead of writing an OAuth/OIDC client by hand. The administrator selects the
+client by declaring the type on the plugin's `Configuration` interface.
+
+**Key Methods**:
+- `getClientId(): String` — The id of the referenced OAuth client
+- `startAuthorizationCodeFlow(HttpClient): AuthorizationCodeFlow` — Build the authorization URL and the flow state to persist
+- `startAuthorizationCodeFlow(Map<String, Collection<String>>, HttpClient): AuthorizationCodeFlow` — As above, appending extra authorization parameters as-is
+- `handleAuthorizationCodeFlowCallback(AuthorizationCodeFlow, Map<String, String>, HttpClient): OAuthTokens` — Validate `state`/`iss`, exchange the code, validate the ID token
+
+`TokenServiceOAuthClient.AuthorizationCodeFlow` extends `MapAttributeValue` (so it stores
+directly in an `Attribute`) and exposes `getAuthorizationUrl()`, `getState()`,
+`getVerifier()`, `getRedirectUri()` and `getResponseMode()`. Restore it from session storage
+with `AuthorizationCodeFlow.of(Iterable<Attribute>)`.
+
+PKCE is always used, and the SDK generates the `state` and the redirect URI — do not
+generate your own. The client on the linked profile must have `flow.getRedirectUri()`
+registered as a redirect URI, and must authenticate with a **symmetric key** rather than a
+hashed `<secret>`, since the plugin authenticates as that client against the token endpoint.
+See `plugin-type-application.md` for the required profile and client configuration.
+
+`se.curity.identityserver.sdk.data.oauth.OAuthTokens` is a **record**, and everything except
+the access token is `@Nullable` — not `Optional`:
+
+| Component | Notes |
+|-----------|-------|
+| `accessToken(): String` | Always present |
+| `accessTokenExpiresIn(): Duration` | `null` if the token endpoint returned no lifetime |
+| `refreshToken(): String` | `null` if none was returned |
+| `idTokenClaims(): Map<String, Object>` | `null` if no ID token was returned; when present, signature, expiry, issuer and audience are already validated |
+
+**See also**: `plugin-type-application.md` for a full start-flow/handle-callback example.
+
 ## 18. Token Issuance and Introspection
 
 These services are primarily used in **Token Procedure** plugins but can also be injected by other plugin types.

@@ -190,7 +190,8 @@ public interface TimeConfiguration
 
 ### OneOf (Sum Types)
 
-Use `OneOf` when a configuration value can be one of several mutually exclusive types:
+Use `OneOf` when a configuration value can be one of several mutually exclusive types.
+`OneOf` is a bare marker interface; each option is an `Optional` getter:
 
 ```java
 import se.curity.identityserver.sdk.config.OneOf;
@@ -207,9 +208,61 @@ TokenSource getTokenSource();
 Optional<TokenSource> getTokenSource();
 ```
 
-At runtime, exactly one of the `Optional` methods returns a value.
+At runtime, exactly one of the `Optional` methods returns a value. Read a `OneOf` by
+trying each option rather than inferring the choice from which fields are populated:
 
-Use `@DefaultOption` on one method to make it the default choice.
+```java
+var source = config.getTokenSource();
+var staticValue = source.staticValue().orElse(null);
+if (staticValue != null) { /* ... */ }
+```
+
+Options may be nested configuration interfaces, not just scalars — that is the usual
+way to model "either this set of settings, or that one".
+
+#### A OneOf never produces its own element
+
+A `OneOf` **never** generates an element of its own, at any nesting level. The name of the
+`OneOf`-typed property does not appear in the configuration at all; the selected option's
+element sits directly where the property would have been. The property name only ever exists
+as the accessor in code, so it never has to be a name an administrator would recognise.
+
+For a `getSource()` returning a `OneOf` with a `staticConfiguration` option, nested inside a
+`service-providers` list:
+
+```xml
+<!-- CORRECT — the option element is a direct child; there is no <source> wrapper -->
+<service-providers>
+    <realm>urn:test:sp</realm>
+    <static-configuration>
+        <reply-url>https://sp.example.com/callback</reply-url>
+    </static-configuration>
+</service-providers>
+```
+
+The names that matter in the configuration are therefore the **option** names, not the
+property name — choose those carefully.
+
+#### `@DefaultOption` requires a fully defaultable option
+
+`@DefaultOption` marks one option as the default choice, and only one option may carry
+it. The annotated option must be creatable **from defaults alone**: every value inside it
+needs its own default annotation (`@DefaultString`, `@DefaultInteger`, `@DefaultEnum`, …).
+
+An option containing any value the administrator must supply — a required URL, an
+`EncryptedString` secret, a nested list — therefore cannot be the default option, and
+there is no default-value annotation that applies to a nested configuration interface.
+When no option qualifies, simply omit `@DefaultOption`; the administrator then picks an
+option explicitly, which is usually the honest outcome.
+
+Getting this wrong fails at plugin load, not at compile time:
+
+```
+se.curity.identityserver.prebooter.PluginBuildException: Failed to update plugin group
+'my-plugin' due to Plugin Configuration error: Default value option must be annotated
+with both @DefaultOption and the appropriate annotation providing a default value, but
+only one annotation was used.
+```
 
 ## 7. Service Injection
 
@@ -252,8 +305,12 @@ Services **without** `@ConfigurationScope` are only available to regular plugin 
 - Always call the Configuration getter each time you use a service
 - This is because `ManagedObject` may outlive a service if service configuration changes
 
+`ManagedObject` exposes **no `configuration()` accessor** — its public API is the
+`ManagedObject(C configuration)` constructor plus `close()` / `close(boolean)`. Keep your
+own reference to the configuration and read services off it per call:
+
 ```java
-// WRONG — do not cache
+// WRONG — do not cache the service
 public class MyManagedObject extends ManagedObject<MyConfig> {
     private final HttpClient httpClient; // BAD
 
@@ -263,17 +320,81 @@ public class MyManagedObject extends ManagedObject<MyConfig> {
     }
 }
 
-// CORRECT — always go through config
+// CORRECT — hold the configuration, resolve the service on each use
 public class MyManagedObject extends ManagedObject<MyConfig> {
-    public MyManagedObject(MyConfig config) {
-        super(config);
+    private final MyConfig _configuration;
+
+    public MyManagedObject(MyConfig configuration) {
+        super(configuration);
+        _configuration = configuration;
     }
 
     public void doSomething() {
-        configuration().getHttpClient().request(...); // GOOD — fresh reference
+        _configuration.getHttpClient().request(...); // GOOD — fresh reference
     }
 }
 ```
+
+Only `@ConfigurationScope` services are reachable this way. Calling a configuration getter
+that returns a narrower-scoped service (`ExceptionFactory`, `SessionManager`, …) throws
+`UnsupportedOperationException` at runtime.
+
+### ManagedObject lifecycle
+
+- The server creates a new instance **every time the configuration changes**, including at
+  startup, and closes the previous instance first. State held in a `ManagedObject` is
+  therefore scoped to one configuration generation — which is what makes it the right home
+  for a cache of fetched remote documents.
+- Return it from `PluginDescriptor.createManagedObject`:
+
+```java
+@Override
+public Optional<? extends ManagedObject<MyConfig>> createManagedObject(MyConfig configuration) {
+    return Optional.of(new MyMetadataCache(configuration));
+}
+```
+
+- Plugin types receive it by **constructor injection, the same way they receive the
+  Configuration** — no `SdkPluginComposer` binding is needed for it.
+- The plugin is unavailable until the constructor returns; if it throws, the plugin never
+  becomes active. Keep constructors cheap and do not fetch anything remote in them.
+- Implement **either** `close()` **or** `close(boolean hasReplacement)`, never both — the
+  plugin system calls `close(boolean)`, whose default implementation delegates to `close()`.
+- Implementations must be thread-safe (the class implements `ThreadSafe`); `close()` and the
+  next instance's constructor may run on different threads.
+
+#### Testing a ManagedObject
+
+In Kotlin, classes and methods are final unless marked `open`, so a `ManagedObject`
+subclass cannot be mocked by Spock. Construct the real object with a stubbed configuration
+instead — the SDK's HTTP types are all interfaces, so the whole call chain stubs cleanly:
+
+```groovy
+HttpClient httpClient = Mock()
+MyConfig config = Stub() { getHttpClient() >> httpClient }
+def cache = new MyMetadataCache(config)
+
+when:
+def result = cache.get("https://sp.example.com/metadata", Duration.ofHours(1))
+
+then:
+1 * httpClient.request(_) >> Stub(HttpRequest.Builder) {
+    get() >> Stub(HttpRequest) {
+        response() >> Stub(HttpResponse) {
+            statusCode() >> 200
+            body(_) >> documentBody
+        }
+    }
+}
+```
+
+Two Groovy traps when stubbing these interfaces:
+- Do not name a helper parameter after the method being stubbed. In
+  `Stub(HttpResponse) { body(_) >> body }` Groovy resolves `body` to the parameter and the
+  stub silently fails to match. Name it `documentBody`.
+- Interactions declared in a `then:` block only cover the preceding `when:`. A call made in
+  `given:` to pre-populate state has no interaction registered and returns `null`. Use
+  successive `when:`/`then:` pairs instead.
 
 ## 9. EncryptedString
 

@@ -130,8 +130,12 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Add validation constraints | `configuration.md` → Section 4 |
 | Nested configuration interfaces | `configuration.md` → Section 6 |
 | OneOf (sum type) configuration | `configuration.md` → Section 6 |
+| Why `@DefaultOption` fails at plugin load | `configuration.md` → Section 6 |
 | EncryptedString for secrets | `configuration.md` → Section 9 |
 | ConfigurationScope boundary | `configuration.md` → Section 8 |
+| ManagedObject lifecycle, DI and testing | `configuration.md` → Section 8 |
+| Run an OAuth flow from an application plugin | `plugin-type-application.md` → TokenServiceOAuthClient |
+| `configuration_error` from a plugin's OAuth flow | `plugin-type-application.md` → Configuring the referenced OAuth client |
 
 ---
 
@@ -156,6 +160,7 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | SystemInformationProvider | `se.curity.identityserver.sdk.service` | System info | `sdk-services.md` → Section 16 |
 | OriginalQueryExtractor | `se.curity.identityserver.sdk.service` | OAuth request params | `sdk-services.md` → Section 17 |
 | RequestingOAuthClient | `se.curity.identityserver.sdk.service` | OAuth client info | `sdk-services.md` → Section 17 |
+| TokenServiceOAuthClient | `se.curity.identityserver.sdk.service.oauth` | Run an authorization code flow (11.4.0+, app plugins) | `sdk-services.md` → Section 17 |
 | SLF4J Logger | `org.slf4j` | Logging | `sdk-services.md` → Section 8 |
 
 ---
