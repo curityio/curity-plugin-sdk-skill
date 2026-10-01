@@ -14,6 +14,8 @@ Request handler classes extend a plugin specific interface
 - **`get()`**: Handles GET requests and is typically used to display a form to the user.
 - **`post()`**: Handles POST requests, processes user input, and returns an `AuthenticationResult` if authentication is successful. Fields in the request model are already validated.
 
+> **For non-GET/POST verbs**, use `HttpRequestHandler<T>` (an extension of `RequestHandler` with default `put`, `patch`, `delete`, `trace`, `options` methods) — typically in application plugins. Override only the verbs you support and emit a 405 for the rest. See [plugin-type-application.md](plugin-type-application.md#put-patch-delete--one-method-per-verb). `RequestHandler` itself (used by authenticators and actions) exposes only `get()` and `post()`.
+
 ### Request Model Validation
 
 Request models should use **Jakarta Validation** annotations for automatic field validation. Validation only applies to POST requests since GET requests typically display empty forms.

@@ -1,6 +1,7 @@
 ---
 name: curity-plugin-sdk
 description: Guide for developing plugins for the Curity Identity Server using the Curity SDK. Use when creating authenticators, backchannel authenticators, authentication actions, event listeners, token procedures, or working with Curity SDK APIs.
+allowed-tools: Read(agent-docs/**)
 ---
 
 # Curity Plugin SDK
@@ -29,6 +30,7 @@ When working on Curity plugins, consult these supporting files:
 - [plugin-type-authentication-action.md](agent-docs/plugin-type-authentication-action.md) - Post-authentication enrichment and policies
 - [plugin-type-event-listener.md](agent-docs/plugin-type-event-listener.md) - Audit logging and event handling
 - [plugin-type-token-procedure.md](agent-docs/plugin-type-token-procedure.md) - Custom token issuance and token exchange
+- [plugin-type-application.md](agent-docs/plugin-type-application.md) - Custom HTTP/REST endpoints (SCIM, admin APIs)
 
 ### Core Topics
 - [plugin-system.md](agent-docs/plugin-system.md) - Plugin architecture and lifecycle
@@ -99,10 +101,15 @@ When working on Curity plugins, consult these supporting files:
 
 ## Plugin SDK Reference
 
-- **API Version**: 11.1.0+
+- **API Version**: 11.1.0+ (some documented APIs are newer and are marked with the version
+  that introduced them, e.g. `TokenServiceOAuthClient` in 11.4.0)
 - **Java Version**: 21
 - **Kotlin Version**: 2.0+
 - **Test Framework**: Spock 2.4
+
+Verify signatures against the SDK jar for the version being targeted rather than trusting
+these docs alone — `javap -p -cp identityserver.sdk-<version>.jar <class>` and the javadoc
+jar from Maven Central are the sources of truth. The sources jar is published but empty.
 
 ## Reference Plugins on GitHub
 

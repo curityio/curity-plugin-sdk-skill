@@ -91,7 +91,23 @@ Key responsibilities:
 
 See: `plugin-type-token-procedure.md` for implementation details and code skeletons.
 
-## 6. Other Plugin Types (Not Yet Fully Documented)
+## 6. Application Plugins
+
+Use when:
+
+- Exposing a **custom HTTP/REST endpoint** backed by Curity services (SCIM, admin APIs, health/diagnostic endpoints).
+- You need multiple routes with **path variables** (`Users/:id`) all mounted under a single configurable prefix.
+- Handlers must reuse the server's injected services — `AccountManager`, `Json`, `SessionManager`, `ExceptionFactory`, etc.
+
+Key responsibilities:
+
+- Implement `ApplicationPluginDescriptor<T>` and register routes via `getAnonymousRequestHandlerTypes()` or `getAuthenticatedRequestHandlerTypes()`.
+- Implement `HttpRequestHandler<Request>` for each route — one override per HTTP verb (`get`, `post`, `put`, `patch`, `delete`). Override disallowed verbs with a 405 response.
+- Return JSON via `ResponseModel.mapResponseModel(body)` + `response.setResponseModel(...)` rather than Velocity templates.
+
+See: `plugin-type-application.md` for implementation details and code skeletons.
+
+## 7. Other Plugin Types (Not Yet Fully Documented)
 
 The SDK supports additional plugin types. These are listed here for awareness — detailed implementation guides are not yet available, but the SDK interfaces follow the same descriptor + configuration + implementation pattern.
 
@@ -101,7 +117,6 @@ The SDK supports additional plugin types. These are listed here for awareness �
 | Claims Provider | `ClaimsProviderPluginDescriptor` | Custom claims sources for OAuth/OIDC tokens |
 | Consentor | `ConsentorPluginDescriptor` | Custom consent flow UI and logic |
 | Authorization Manager | `AuthorizationManagerPluginDescriptor` | Custom authorization policies (OAuth, SCIM, GraphQL) |
-| Application | `ApplicationPluginDescriptor` | Custom web endpoints |
 | Alarm Handler | `AlarmHandlerPluginDescriptor` | Custom alarm/alert handling |
 | Email Provider | `EmailProviderPluginDescriptor` | Custom email delivery (SMTP, API-based) |
 | SMS Provider | `SmsPluginDescriptor` | Custom SMS delivery |
