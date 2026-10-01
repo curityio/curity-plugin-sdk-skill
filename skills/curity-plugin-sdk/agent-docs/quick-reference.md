@@ -63,6 +63,8 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Throw internal server error | `sdk-services.md` → ExceptionFactory.internalServerException() |
 | Handle external service errors | `recipes.md` → Recipe 4 (External Service Integration) |
 | Use error codes | `sdk-services.md` → ErrorCode |
+| Return an OAuth error from a token procedure | `plugin-type-token-procedure.md` → Section 9 (Error Handling) |
+| Emit a verbatim OAuth `error` code (e.g. `invalid_target`) | `sdk-services.md` → ExceptionFactory (11.5.0 String-errorCode overloads) |
 
 ### Logging
 | Task | Location |
@@ -118,6 +120,7 @@ Task-oriented index for quickly finding documentation when implementing Curity p
 | Add custom claims to tokens | `plugin-type-token-procedure.md` → Section 7 |
 | Token exchange context API | `plugin-type-token-procedure.md` → Section 6 |
 | Complete token exchange example | `recipes.md` → Recipe 8 |
+| Report an error to the client (throw, don't return) | `plugin-type-token-procedure.md` → Section 9 |
 
 ### Configuration
 | Task | Location |

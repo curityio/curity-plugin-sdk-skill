@@ -135,6 +135,19 @@ fun getExceptionFactory(): ExceptionFactory
 - `configurationException(String): RuntimeException`
 - `redirectException(String): RuntimeException`
 
+**Since 11.5.0** — verbatim error-code overloads. The `String errorCode` is reported to the client exactly as
+given (rather than mapped from an `ErrorCode`), which is the only way to emit a non-default OAuth `error` value
+like `invalid_target` or `invalid_grant`:
+
+- `badRequestException(String errorCode, String errorDescription, boolean exposeErrorDescription): RuntimeException`
+- `unauthorizedException(String errorCode, String errorDescription, boolean exposeErrorDescription): RuntimeException`
+- `forbiddenException(String errorCode, String errorDescription, boolean exposeErrorDescription): RuntimeException`
+
+The error code must be RFC 6749 §5.2-safe (no spaces, quotes, backslash, control chars) or the call throws.
+`exposeErrorDescription=true` returns the description to the client even when the profile does not enable
+`expose-detailed-error-messages`; `false` logs it at debug level instead. For a standard OAuth code, pass
+`OAuthError.<NAME>.name()`.
+
 **Example Usage**:
 ```kotlin
 try {
@@ -153,6 +166,10 @@ try {
 - Provide meaningful error detail messages
 - The server will map these to appropriate HTTP responses
 - In OAuth contexts, errors map to standard OAuth error codes
+- **In token procedures, always _throw_ from `ExceptionFactory`.** Never return an error as a `ResponseModel` —
+  whatever `run` returns is used as the *successful* token response, so `problemResponseModel(...)` yields
+  HTTP 200 with `{}` and `mapResponseModel(Map.of("error", ...))` yields HTTP 200 with the wrong envelope.
+  See `plugin-type-token-procedure.md` §9.
 
 ### ErrorCode
 

@@ -226,7 +226,8 @@ public final class MyTokenExchangeProcedure implements OAuthTokenExchangeTokenPr
         }
         catch (TokenIssuerException e)
         {
-            return ResponseModel.problemResponseModel("token_issuer_exception", "Could not issue tokens");
+            throw _configuration.getExceptionFactory()
+                    .badRequestException(ErrorCode.TOKEN_ISSUANCE_ERROR, "Could not issue tokens");
         }
     }
 
@@ -305,18 +306,32 @@ tasks.register('createDeployDir', Copy) {
 
 ## 9. Error Handling
 
-Token procedures should return error responses using either:
+Token procedures signal errors by **throwing** an exception from the `ExceptionFactory`. The server translates it
+into a standard OAuth error response (RFC 6749 §5.2) with the right HTTP status:
 
-1. **ExceptionFactory** — for immediate error responses:
 ```java
 throw _configuration.getExceptionFactory()
         .badRequestException(ErrorCode.TOKEN_ISSUANCE_ERROR, "Invalid subject token");
+// -> 400 {"error": "invalid_request", "error_description": "Invalid subject token"}
 ```
 
-2. **ResponseModel.problemResponseModel** — for structured error responses:
+`forbiddenException` / `unauthorizedException` map to `access_denied`.
+
+Since 11.5.0, overloads taking a `String errorCode` set the exact OAuth `error` value, and control whether the
+description is exposed to the client:
+
 ```java
-return ResponseModel.problemResponseModel("invalid_grant", "The subject token is expired");
+throw _configuration.getExceptionFactory()
+        .badRequestException("invalid_target", "Unknown audience", true);
+// -> 400 {"error": "invalid_target", "error_description": "Unknown audience"}
 ```
+
+**Never return an error as a `ResponseModel`.** Whatever `run` returns is used as the *successful* token response:
+
+- `ResponseModel.problemResponseModel(...)` is for HAAPI/authenticator error representations. Its fields are
+  internal and removed when the JSON is written, so the client receives HTTP 200 with `{}`.
+- `ResponseModel.mapResponseModel(Map.of("error", ...))` produces the right body but with HTTP 200, which is
+  not a valid OAuth error response.
 
 ## 10. Testing
 
